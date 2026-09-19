@@ -208,10 +208,17 @@ function Leading({ hit }: { hit: Hit }) {
   );
 }
 
-function ResultRow({ hit }: { hit: Hit }) {
+function ResultRow({ hit, onPick }: { hit: Hit; onPick: (hit: Hit) => void }) {
   return (
     <Autocomplete.Item
       value={hit}
+      /*
+        A tap has no hover to highlight the row first, so the row picks itself. Safari
+        swallows the click that a tap would synthesise -- the list prevents the default
+        on `pointerdown` to keep focus in the input -- so touch is taken on the release.
+      */
+      onPointerUp={(e) => e.pointerType !== 'mouse' && onPick(hit)}
+      onClick={() => onPick(hit)}
       className="menu-item cursor-pointer outline-hidden"
     >
       <Leading hit={hit} />
@@ -283,7 +290,7 @@ function ResultsBody({
               {t(`groups.${group.value}`)}
             </Autocomplete.GroupLabel>
             <Autocomplete.Collection>
-              {(hit: Hit) => <ResultRow key={hit.key} hit={hit} />}
+              {(hit: Hit) => <ResultRow key={hit.key} hit={hit} onPick={onPick} />}
             </Autocomplete.Collection>
           </Autocomplete.Group>
         )}
@@ -353,7 +360,17 @@ function useSearchState(locale: string, onDone: () => void) {
     status = t('empty', { query: trimmed });
   }
 
+  /*
+    A touch pick lands on `pointerup`, and Chrome still sends the click a tap
+    synthesises afterwards -- by then the list has been cleared and redrawn, so that
+    click would land on whatever row now sits under the finger and navigate again.
+    One press is one pick: a second within the window a tap spans is ignored.
+  */
+  const lastPickAt = useRef(0);
   const pick = (hit: Hit) => {
+    const now = Date.now();
+    if (now - lastPickAt.current < 700) return;
+    lastPickAt.current = now;
     router.push(hit.href);
     setQuery('');
     setCategory('all');
@@ -362,8 +379,9 @@ function useSearchState(locale: string, onDone: () => void) {
 
   /*
     Enter and a press both arrive as an `item-press` change carrying the row's label,
-    not the row. The highlighted row is the one pressed -- a pointer highlights on
-    hover -- so it is kept here and read back when the press lands.
+    not the row, so the row's own click does the picking (Enter clicks the highlighted
+    row) and the change is only kept out of the query. The highlighted row is tracked
+    for the Enter fallback below.
   */
   const highlighted = useRef<Hit | undefined>(undefined);
   const rootProps = {
@@ -376,10 +394,7 @@ function useSearchState(locale: string, onDone: () => void) {
       highlighted.current = hit;
     },
     onValueChange: (value: string, details: { reason: string }) => {
-      if (details.reason === 'item-press') {
-        if (highlighted.current) pick(highlighted.current);
-        return;
-      }
+      if (details.reason === 'item-press') return;
       setQuery(value);
     },
   };
