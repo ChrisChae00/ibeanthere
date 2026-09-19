@@ -134,6 +134,10 @@ Findings that shipped as fixes: report text is escaped in the admin email and da
 
 Browser-native dialogs are gone from the app. Deleting a coffee log could freeze the tab outright, which left no way to remove a mistaken entry short of deleting the account. Eleven `confirm()` and `alert()` calls now route through the app's own dialog and toast, which also means they are translated, and toasts are announced to screen readers.
 
+### A tap is not a click
+
+Header search results opened nothing on a phone. The press followed the row the list had highlighted, which a mouse sets by hovering and a finger never sets. Fixing only that would have left the bug in place on iOS, because Safari sends no click for a tap on these rows at all: the list prevents the default on `pointerdown` to hold focus in the input, and WebKit then drops the compatibility click, so touch has to be taken on the release. Chrome does send that click, a beat later, after the list has been cleared and redrawn, so it lands on whichever row has moved under the finger. In one recorded run that row was "Register a cafe", which bounced the reader to the sign-in page. One press now counts as one pick. Verified with 24 scripted cases across Chromium, Firefox and WebKit at phone and desktop widths, covering tap, click and keyboard.
+
 ### Testing
 
 100 backend tests across 14 modules cover registration policy, trait suggestion evidence, visit and collection privacy, blacklists, account deletion, report safety, badges, and the OSM rate gate. The frontend is verified end to end against a running stack with a real account rather than by build alone: the current run has ten sessions of recorded results, which is where the log deletion freeze, the drop-bean radius mismatch and the silent photo upload failure were found. Run results and evidence are kept with the project rather than in the repository.

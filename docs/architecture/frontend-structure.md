@@ -303,9 +303,19 @@ animate.
   or two when the query has Hangul in it -- a syllable carries what two or three Latin
   letters do, and most Korean names are two syllables. `personMin` mirrors
   `user_search_min_length`; change both together.
-- **Enter means a row.** An `item-press` change carries the row's label, not the row, so
-  the highlighted row is kept and read back when the press lands. Results arrive after
-  the keystroke, so when nothing is highlighted Enter takes the first row.
+- **A press means its own row** (2026-09-19). An `item-press` change carries the row's
+  label, not the row, so the row itself does the picking. It used to follow the
+  highlighted row instead, which a pointer sets by hovering and a finger never sets, so
+  on a phone a press went nowhere or opened whichever row happened to be highlighted.
+  Enter still means the highlighted row: Base UI clicks it.
+- **Touch is taken on the release**, because Safari sends no click for a tap at all --
+  the list prevents the default on `pointerdown` to keep focus in the input, and WebKit
+  drops the compatibility click that follows. Chrome sends it, so a second pick within
+  700ms of the first is ignored; by then the list has been cleared and redrawn, and that
+  click would otherwise land on whatever row has taken that place. Checked on Chromium,
+  Firefox and WebKit, phone and desktop widths.
+- **Results arrive after the keystroke**, so when nothing is highlighted Enter takes the
+  first row.
 - **Category chips keep the popup open** by preventing `mousedown`, which would move
   focus out of the input and close it. `/` focuses the bar from anywhere that is not
   already taking text.
