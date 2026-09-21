@@ -35,6 +35,10 @@ class TraitObservationCreate(BaseModel):
     # Free text, so it is length-capped here, again in the service, and once more by a
     # CHECK on the column. The backend bypasses RLS, so the database is the last gate.
     note: Optional[str] = Field(None, max_length=200)
+    # Admin-only, and only read from an admin's request: the reason behind the claim,
+    # kept on a "no" as much as on a "yes". Capped here, in the service and by the
+    # column's CHECK, for the same reason the note is.
+    evidence: Optional[str] = Field(None, max_length=500)
 
 
 class CafeBeanEntry(BaseModel):

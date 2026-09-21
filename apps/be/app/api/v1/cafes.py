@@ -33,7 +33,7 @@ from app.services import badges as badges_service
 from app.services import franchise_service, venue_category
 from app.database.supabase import get_supabase_client
 from app.api.deps import get_current_user, get_optional_user, require_admin_role
-from app.core.permissions import Permission, require_permission
+from app.core.permissions import Permission, UserRole, require_permission
 from app.core.fraud_detection import check_location_consistency
 from app.core.rate_limit import limiter
 from app.config import settings
@@ -797,6 +797,11 @@ async def observe_cafe_trait(
     registering a cafe from inside it, logging a bean purchase -- write approved rows
     directly and are not routed through here.
 
+    An admin is the exception, because an admin is who the pending queue is waiting for:
+    the same person would read their own suggestion and press approve. Their answer is
+    written approved, and only their request may carry `evidence`, which is admin-only
+    text. Both are decided from the caller's role here, never from the request body.
+
     Insert-only: the history is the point. Saying "no" today does not erase the "yes"
     from six months ago, it supersedes it -- and the old row is what lets anyone see
     that the place changed rather than that someone was wrong.
@@ -823,7 +828,9 @@ async def observe_cafe_trait(
         except ValueError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
-        # `status` is set from which endpoint this is, never from the request body.
+        # `status` is set from which endpoint this is and who is calling it, never from
+        # the request body. Same for `evidence`: a non-admin's is dropped, not refused.
+        is_admin = getattr(current_user, "role", None) == UserRole.ADMIN
         traits_service.record_observation(
             supabase,
             cafe_id=cafe_id,
@@ -831,13 +838,15 @@ async def observe_cafe_trait(
             value=payload.value,
             user_id=current_user.id,
             observed_at=observed_at,
-            status=traits_service.PENDING,
+            status=traits_service.APPROVED if is_admin else traits_service.PENDING,
             note=payload.note,
+            evidence=payload.evidence if is_admin else None,
         )
 
-        # The summary comes back unchanged -- a suggestion does not move the numbers.
-        # Returning it anyway keeps the caller on one shape, and the `submitted` flag
-        # is what the page uses to say "thanks, someone will look at this".
+        # The summary is re-read after the insert, so an admin sees their own answer
+        # immediately and everyone else sees the numbers unchanged -- a suggestion does
+        # not move them. The `submitted` flag is what the page uses to say "thanks,
+        # someone will look at this".
         return {
             "submitted": True,
             "traits": await get_cafe_traits(cafe_id, current_user, supabase),

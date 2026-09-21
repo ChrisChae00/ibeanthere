@@ -229,6 +229,7 @@ def record_observation(
     observed_at: Optional[date] = None,
     status: str = APPROVED,
     note: Optional[str] = None,
+    evidence: Optional[str] = None,
 ) -> None:
     """
     Write one user observation.
@@ -237,6 +238,9 @@ def record_observation(
     surface actually verified, not from anything in the request body. Registration, and
     a purchase log carrying a check-in the endpoint measured, pass `APPROVED`; the cafe
     page and every other log pass `PENDING`.
+
+    `evidence` is the caller's on the same terms. It is admin-only text, so a surface
+    that cannot tell an admin from anyone else passes nothing and the column stays null.
     """
     supabase.table("cafe_trait_observations").insert({
         "cafe_id": cafe_id,
@@ -247,6 +251,7 @@ def record_observation(
         "observed_at": (observed_at or date.today()).isoformat(),
         "status": status,
         "note": clean_note(trait, value, note),
+        "evidence": clean_evidence(evidence),
     }).execute()
 
 

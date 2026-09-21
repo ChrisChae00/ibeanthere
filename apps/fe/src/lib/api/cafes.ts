@@ -295,19 +295,24 @@ export async function getCafeTraits(cafeId: string): Promise<TraitSummary[]> {
   A claim made from the cafe page is a suggestion, not a change. The server decides
   that, not this call -- there is no status in the body to forge. The summary comes
   back unmoved, which is the honest answer: nothing counts until someone reviews it.
+
+  Two things the server decides from who is calling: an admin's answer is the record
+  rather than a request, and only an admin's `evidence` is kept. Sending one from
+  anywhere else is not refused, it is dropped.
 */
 export async function suggestTraitObservation(
   cafeId: string,
   trait: string,
   value: boolean,
   note?: string,
-  observedAt?: string
+  observedAt?: string,
+  evidence?: string
 ): Promise<{ submitted: boolean; traits: TraitSummary[] }> {
   const headers = await getAuthHeaders();
   const response = await apiFetch(`${API_BASE_URL}/api/v1/cafes/${cafeId}/traits/${trait}`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ value, note, observed_at: observedAt }),
+    body: JSON.stringify({ value, note, observed_at: observedAt, evidence }),
   });
   return handleResponse<{ submitted: boolean; traits: TraitSummary[] }>(response);
 }

@@ -635,7 +635,15 @@
     "approve": "Approve",
     "reject": "Reject",
     "suggests_yes": "says yes",
-    "suggests_no": "says no"
+    "suggests_no": "says no",
+    "traits": {
+      "title": "Listing questions",
+      "hint": "Your answer counts at once. The reason box is admin-only and never shown to readers.",
+      "clear": "Clear",
+      "evidence_placeholder": "Why (admin only) -- the page or sentence this came from",
+      "evidence_label": "Reason for {trait}, admin only",
+      "save_failed": "Could not save that. Try again."
+    }
   },
   "settings": {
     "title": "Settings",

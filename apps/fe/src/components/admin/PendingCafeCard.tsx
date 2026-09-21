@@ -8,6 +8,7 @@ import { BusinessHours } from '@/types/map';
 import OpeningHoursInput from '@/components/cafe/OpeningHoursInput';
 import { isTemporarilyClosed, setTemporarilyClosed } from '@/lib/utils/businessHours';
 import PhotoUploadWithMain from '@/shared/ui/PhotoUploadWithMain';
+import CafeTraitAdminControls from './CafeTraitAdminControls';
 import { useAuth } from '@/hooks/useAuth';
 import { lookupGoogleMapsUrl } from '@/lib/api/cafes';
 
@@ -384,6 +385,13 @@ export default function PendingCafeCard({
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background text-text focus:outline-hidden focus:ring-2 focus:ring-primary resize-none"
                 />
               </div>
+
+              {/*
+                The listing questions. They write on their own press rather than with
+                this modal's Save: each is a dated observation of its own, and half of
+                one saved with the rest of the form would be a claim nobody made.
+              */}
+              <CafeTraitAdminControls cafeId={cafe.id} />
 
               {/* Opening Hours */}
               <OpeningHoursInput

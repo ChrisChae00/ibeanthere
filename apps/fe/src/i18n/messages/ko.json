@@ -635,7 +635,15 @@
     "approve": "승인",
     "reject": "거절",
     "suggests_yes": "맞다고 함",
-    "suggests_no": "아니라고 함"
+    "suggests_no": "아니라고 함",
+    "traits": {
+      "title": "등재 기준",
+      "hint": "누르면 바로 반영됩니다. 사유는 관리자만 보며 이용자에게 보이지 않습니다.",
+      "clear": "지움",
+      "evidence_placeholder": "사유 (관리자 전용) -- 어느 페이지, 어떤 문장에서 나왔는지",
+      "evidence_label": "{trait} 사유, 관리자 전용",
+      "save_failed": "저장하지 못했습니다. 다시 시도해 주세요."
+    }
   },
   "settings": {
     "title": "설정",

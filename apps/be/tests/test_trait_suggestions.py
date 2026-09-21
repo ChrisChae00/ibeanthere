@@ -25,7 +25,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from app.services import traits
 
-from test_visit_privacy import FakeSupabase, _row, make_client
+from test_visit_privacy import FakeSupabase, FakeUser, _row, make_client
+from app.api.deps import get_current_user
+from app.main import app
 
 CAFE = "cafe-1"
 SOMEONE = "user-1"
@@ -198,6 +200,61 @@ class MapFlagQueryTests(unittest.TestCase):
         supabase = FakeSupabase({"cafe_trait_observations": []})
         traits.load_flags(supabase, [CAFE])
         self.assertIn(("eq", "status", traits.APPROVED), supabase.queries[0].filters)
+
+
+class AdminAnswersTests(unittest.TestCase):
+    """
+    The admin cafe card answers the trait questions itself.
+
+    Everyone else's press is a suggestion that waits for an admin to read it. When the
+    admin is the one pressing, waiting means the same person reads their own sentence
+    and presses approve, so their answer is written approved. `evidence` is the
+    admin-only reason behind it and only an admin's request may carry one -- a stranger
+    cannot post text into a column no reader-facing endpoint returns.
+    """
+
+    def _press(self, role, body):
+        client, supabase = make_client(self, {
+            "cafes": [{"id": CAFE}],
+            "cafe_trait_observations": [],
+        })
+        user = FakeUser(SOMEONE)
+        user.role = role
+        app.dependency_overrides[get_current_user] = lambda: user
+
+        response = client.post(f"/api/v1/cafes/{CAFE}/traits/sells_beans", json=body)
+        written = [
+            q.payload for q in supabase.queries_on("cafe_trait_observations") if q.op == "insert"
+        ]
+        return response, written
+
+    def test_an_admin_answer_counts_at_once(self):
+        response, written = self._press("admin", {"value": True})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([w["status"] for w in written], [traits.APPROVED])
+
+    def test_everyone_else_still_waits(self):
+        _, written = self._press("user", {"value": True})
+        self.assertEqual([w["status"] for w in written], [traits.PENDING])
+
+    def test_an_admin_reason_is_stored(self):
+        _, written = self._press("admin", {"value": True, "evidence": "  Sells  Pilot bags  "})
+        self.assertEqual(written[0]["evidence"], "Sells Pilot bags")
+
+    def test_a_reason_survives_a_no(self):
+        """Why a cafe does NOT do something is exactly what the next approver needs."""
+        _, written = self._press(
+            "admin", {"value": False, "evidence": "Menu lists espresso only"}
+        )
+        self.assertEqual(written[0]["evidence"], "Menu lists espresso only")
+
+    def test_a_stranger_cannot_write_into_the_admin_column(self):
+        _, written = self._press("user", {"value": True, "evidence": "trust me"})
+        self.assertIsNone(written[0]["evidence"])
+
+    def test_a_long_reason_is_cut_to_what_the_column_takes(self):
+        _, written = self._press("admin", {"value": True, "evidence": "x" * 500})
+        self.assertEqual(len(written[0]["evidence"]), traits.EVIDENCE_MAX_LENGTH)
 
 
 if __name__ == "__main__":
