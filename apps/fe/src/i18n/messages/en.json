@@ -159,7 +159,9 @@
     "view_cafe_map": "View Map",
     "register_new_cafe": "Register New Cafe",
     "cafes_within_50m": "Cafes within 50m",
-    "cafe_count": "{count} cafes"
+    "cafe_count": "{count} cafes",
+    "write_log": "Write a log",
+    "log_drops_bean": "A log drops the bean too"
   },
   "my_beans": {
     "title": "My Coffee Forest",

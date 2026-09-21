@@ -159,7 +159,9 @@
     "view_cafe_map": "지도 보기",
     "register_new_cafe": "새 카페 등록",
     "cafes_within_50m": "50m 이내 카페",
-    "cafe_count": "{count}개 카페"
+    "cafe_count": "{count}개 카페",
+    "write_log": "로그 남기기",
+    "log_drops_bean": "로그를 남기면 빈도 같이 심어져요"
   },
   "my_beans": {
     "title": "나의 커피 숲",

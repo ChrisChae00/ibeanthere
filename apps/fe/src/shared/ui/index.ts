@@ -35,6 +35,7 @@ export { default as Toast, type ToastType } from './Toast';
 export { default as IntensitySlider } from './IntensitySlider';
 export { default as InfoIcon } from './InfoIcon';
 export { default as EditIcon } from './EditIcon';
+export { default as LogIcon } from './LogIcon';
 export { default as Tooltip } from './Tooltip';
 export { default as AchievementBadge } from './AchievementBadge';
 export { default as TasteTag } from './TasteTag';

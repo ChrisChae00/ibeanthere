@@ -263,15 +263,34 @@ export default function NearbyPage(
                       )}
                     </div>
 
+                    {/*
+                      Two ways to record the same visit, and they are not equals. Dropping
+                      a bean is what this page is for, so it keeps the filled button; a
+                      log is the longer version of the same answer and sits beside it as a
+                      rule. Writing one already drops the bean, which is why the line
+                      underneath says so -- a reader who does not know that does both, and
+                      the second press is the one that feels broken.
+                    */}
                     <div className="shrink-0 sm:pl-2">
                       {user ? (
-                        <DropBeanButton
-                          cafeId={cafe.id}
-                          cafeLat={parseFloat(String(cafe.latitude))}
-                          cafeLng={parseFloat(String(cafe.longitude))}
-                          size="sm"
-                          showGrowthInfo={false}
-                        />
+                        <div className="flex flex-col items-start gap-2 sm:items-end">
+                          <div className="flex items-center gap-2">
+                            <DropBeanButton
+                              cafeId={cafe.id}
+                              cafeLat={parseFloat(String(cafe.latitude))}
+                              cafeLng={parseFloat(String(cafe.longitude))}
+                              size="sm"
+                              showGrowthInfo={false}
+                            />
+                            <Link
+                              href={`/${locale}/cafes/${cafe.slug || cafe.id}/log`}
+                              className="control-flat flex h-(--btn-height-sm) items-center justify-center rounded-(--btn-radius) px-4 text-sm font-medium"
+                            >
+                              {t('write_log')}
+                            </Link>
+                          </div>
+                          <p className="landing-micro text-ink-secondary">{t('log_drops_bean')}</p>
+                        </div>
                       ) : (
                         <Link
                           href={`/${locale}/signin`}

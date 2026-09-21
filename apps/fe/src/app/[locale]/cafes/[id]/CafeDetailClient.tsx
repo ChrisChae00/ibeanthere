@@ -11,7 +11,7 @@ import { GalleryImage } from '@/types/gallery';
 import CafeInfoSection from '@/components/cafe/CafeInfoSection';
 import FoundingCrewAvatars from '@/components/cafe/FoundingCrewAvatars';
 import CafePhotoHero from '@/components/cafe/CafePhotoHero';
-import { ActionsMenu } from '@/shared/ui';
+import { ActionsMenu, LogIcon } from '@/shared/ui';
 import CoffeeLogFeed from '@/components/cafe/CoffeeLogFeed';
 import CafeTraits from '@/components/cafe/CafeTraits';
 import CafeBeansRecent from '@/components/cafe/CafeBeansRecent';
@@ -126,12 +126,44 @@ export default function CafeDetailClient({ cafe }: CafeDetailClientProps) {
             <h1 className="font-sans text-3xl font-bold wrap-break-word text-ink-primary">
               {cafe.name}
             </h1>
-            <div className="flex shrink-0 flex-wrap items-center gap-1">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
               <SaveButtons
                 cafeId={cafe.id}
                 syncToken={saveSync}
                 onOpenCollectionSelector={() => setCollectionModalOpen(true)}
               />
+              {/*
+                The same door the log feed carries, at the top where the other two
+                marks are. Writing a log was reachable only by scrolling past the
+                photos, the details and the beans, so the quick thing to do here was
+                always the bean -- and a log drops one anyway.
+
+                A mark beside the save marks, not a second button: it is the same kind
+                of act as favouriting, one tap on this cafe, and two filled buttons
+                beside a title read as a choice between equals. Same box, same size and
+                same ring as `SaveButtons` draws, so the row stays one row of marks
+                with the bean button at its end.
+              */}
+              {user ? (
+                <Link
+                  href={logPagePath}
+                  aria-label={t('write_log')}
+                  title={t('write_log')}
+                  className="flex items-center justify-center rounded-lg p-2 text-textSecondary transition-all duration-200 hover:bg-brand/10 hover:text-brand focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                >
+                  <LogIcon size={24} />
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={requireAuth(() => router.push(logPagePath))}
+                  aria-label={t('write_log')}
+                  title={t('write_log')}
+                  className="flex items-center justify-center rounded-lg p-2 text-textSecondary transition-all duration-200 hover:bg-brand/10 hover:text-brand focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                >
+                  <LogIcon size={24} />
+                </button>
+              )}
               <DropBeanButton
                 cafeId={cafe.id}
                 cafeLat={cafe.latitude}
