@@ -494,7 +494,7 @@ function Personas({ messages }: { messages: LandingMessages }) {
               their own motion doesn't read as the whole block shifting.
 
               Both the mark and the heading go to primary ink on hover, not to brand.
-              Dark Roast sets `--c-brand` and `--c-ink-soft` to the same #d4c7b8, so a
+              Espresso sets `--c-brand` and `--c-ink-soft` to the same #d4c7b8, so a
               brand hover over secondary ink was a no-op in that theme -- the column
               simply did not respond. The muted/primary gap is guaranteed in all four
               themes, since that is the gap the AA work was built on. The new rule

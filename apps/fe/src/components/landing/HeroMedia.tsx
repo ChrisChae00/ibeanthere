@@ -138,7 +138,7 @@ export default function HeroMedia() {
 
       {/*
         The tinted wash reads `--scrim-media`, not `--brand`. Brand is a
-        foreground colour that a dark theme has to make light, and Dark Roast's
+        foreground colour that a dark theme has to make light, and Espresso's
         is `#d4c7b8` - as a wash that whitened the video and left the headline
         fighting its own backdrop. The scrim slot stays dark in all four themes
         and still carries each one's hue.

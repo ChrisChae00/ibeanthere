@@ -16,7 +16,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 
   Names on this page are the names in the code — the token as it is written in
   `tokens.css` and the theme as it is keyed in `palettes.ts` (`espresso`, not
-  "Dark Roast"). A label that only exists on this page is a label nobody can grep.
+  "Espresso"). A label that only exists on this page is a label nobody can grep.
 */
 
 const SURFACES = [

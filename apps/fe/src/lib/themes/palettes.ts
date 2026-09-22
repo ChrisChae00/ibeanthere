@@ -12,7 +12,7 @@ import { ThemePalette } from './types';
 */
 export const themes: Record<string, ThemePalette> = {
   morningCoffee: { name: 'morningCoffee', displayName: 'Morning Coffee' },
-  espresso: { name: 'espresso', displayName: 'Dark Roast' },
+  espresso: { name: 'espresso', displayName: 'Espresso' },
   matchaLatte: { name: 'matchaLatte', displayName: 'Matcha Latte' },
   vanillaLatte: { name: 'vanillaLatte', displayName: 'Vanilla Latte' },
 };
