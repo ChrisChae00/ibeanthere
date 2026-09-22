@@ -1243,3 +1243,69 @@
     .landing-marquee { animation: none; }
   }
 }
+
+@layer components {
+  /*
+    The log form's floating labels. Written here rather than as peer variants at the
+    call site: the resting state needs `:placeholder-shown:not(:focus)`, and Tailwind
+    dropped that compound on the floor without a word -- the class was in the markup
+    and the rule was never in the stylesheet.
+
+    Raised, the label sits on the field's top rule and cuts it, which means it has to
+    paint whatever is behind the field. This form is rendered on two surfaces -- the
+    write page's card and the edit card in my-logs -- so the colour cannot be baked in
+    here. `--field-surface` is a custom property, and those inherit through any number
+    of wrappers, so each card declares its own surface once and every label inside it
+    picks that up. A container that declares nothing gets the page.
+
+    `:has()` rather than a sibling combinator, because the rule and the padding belong
+    to a wrapper that the input sits inside. A `.field-float` holding no input at all
+    -- the bean picker showing what was chosen -- matches none of these and keeps the
+    raised label, which is the point: the step keeps its name after it is answered.
+  */
+  .field-float {
+    position: relative;
+  }
+
+  .field-float > label {
+    position: absolute;
+    left: 0.75rem;
+    top: 0;
+    transform: translateY(-50%);
+    padding-inline: 0.25rem;
+    background-color: var(--field-surface, var(--surface-page));
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--ink-secondary);
+    pointer-events: none;
+    transition:
+      top var(--ibean-transition),
+      font-size var(--ibean-transition),
+      color var(--ibean-transition);
+  }
+
+  .field-float:has(:where(input, textarea):focus) > label {
+    color: var(--brand);
+  }
+
+  /*
+    Empty and unattended: the label drops back inside the field, where it is the only
+    thing naming it. No fill down here -- there is no rule to cut.
+  */
+  .field-float:has(input:placeholder-shown:not(:focus)) > label,
+  .field-float:has(textarea:placeholder-shown:not(:focus)) > label {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    background-color: transparent;
+    padding-inline: 0;
+  }
+
+  .field-float:has(input:placeholder-shown:not(:focus)) > label {
+    top: 50%;
+  }
+
+  .field-float:has(textarea:placeholder-shown:not(:focus)) > label {
+    top: 0.75rem;
+    transform: none;
+  }
+}

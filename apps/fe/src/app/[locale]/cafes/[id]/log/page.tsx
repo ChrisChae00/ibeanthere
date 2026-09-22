@@ -96,7 +96,10 @@ export default function WriteLogPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <div className="bg-surface rounded-lg border border-border p-6">
+      {/* `--field-surface` is what the form's floating labels paint behind themselves
+          where they cut the field's top rule. It is declared by whoever owns the
+          surface, because the form is rendered on more than one. */}
+      <div className="bg-surface [--field-surface:var(--surface-elevated)] rounded-lg border border-border p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-surfaceText mb-2">
             {t('write_log_for_cafe', { name: cafe.name })}

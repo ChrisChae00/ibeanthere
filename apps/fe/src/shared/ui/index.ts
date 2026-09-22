@@ -23,6 +23,7 @@ export { default as RefreshIcon } from './RefreshIcon';
 export { default as SearchIcon } from './SearchIcon';
 export { default as Button } from './Button';
 export { default as Input } from './Input';
+export { default as FloatingInput } from './FloatingInput';
 export { default as Card } from './Card';
 export { default as Modal } from './Modal';
 export { default as ConfirmDialog } from './ConfirmDialog';

@@ -205,7 +205,7 @@ export default function MyLogsClient() {
                 editingLog?.id === log.id ? (
                   <div
                     key={log.id}
-                    className="rounded-(--radius-card) border border-edge-rule bg-surface-raised p-6"
+                    className="rounded-(--radius-card) border border-edge-rule bg-surface-raised p-6 [--field-surface:var(--surface-raised)]"
                   >
                     <h2 className="mb-4 text-xl text-ink-primary">{t('edit_log')}</h2>
                     <CoffeeLogForm
