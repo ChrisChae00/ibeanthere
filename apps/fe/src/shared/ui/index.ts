@@ -1,6 +1,5 @@
 export { default as Logo } from './Logo';
 export { default as CoffeeBean } from './CoffeeBean';
-export { default as CoffeeIcon } from './CoffeeIcon';
 export { Avatar } from './Avatar';
 export { default as LocationIcon } from './LocationIcon';
 export { default as UserLocationIcon } from './UserLocationIcon';

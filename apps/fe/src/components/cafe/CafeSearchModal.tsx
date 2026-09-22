@@ -13,7 +13,7 @@ import { ErrorAlert } from '@/shared/ui';
 import { LocationIcon } from '@/shared/ui';
 import { SearchIcon } from '@/shared/ui';
 import { Modal, Input, Button } from '@/components/ui';
-import { CoffeeIcon } from '@/shared/ui';
+import { Logo } from '@/shared/ui';
 
 interface CafeSearchModalProps {
   onClose: () => void;
@@ -194,14 +194,14 @@ export default function CafeSearchModal({ onClose }: CafeSearchModalProps) {
             </div>
           ) : sortedCafes.length === 0 && cafes.length > 0 ? (
             <div className="text-center py-12">
-              <CoffeeIcon size={48} className="text-cardTextSecondary opacity-50 mx-auto mb-3" />
+              <Logo size={48} className="text-cardTextSecondary opacity-50 mx-auto mb-3" />
               <p className="text-cardTextSecondary">
                 {t('no_cafes_found')}
               </p>
             </div>
           ) : sortedCafes.length === 0 ? (
             <div className="text-center py-12">
-              <CoffeeIcon size={48} className="text-cardTextSecondary opacity-50 mx-auto mb-3" />
+              <Logo size={48} className="text-cardTextSecondary opacity-50 mx-auto mb-3" />
               <p className="text-cardTextSecondary">
                 {t('select_cafe_to_write_log')}
               </p>
