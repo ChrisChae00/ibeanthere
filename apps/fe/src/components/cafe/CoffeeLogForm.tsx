@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { Collapsible } from '@base-ui/react/collapsible';
+import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { LogFormData, CoffeeLog } from '@/types/api';
-import { Button, Input, PhotoUpload, StarRating } from '@/shared/ui';
+import { Button, FloatingInput, PhotoUpload, StarRating } from '@/shared/ui';
+import NavSelect from '@/components/layout/NavSelect';
 import { useAuth } from '@/hooks/useAuth';
 import AdvancedCoffeeSection from './logging/AdvancedCoffeeSection';
 import BeanPicker, { BeanSelection, EMPTY_SELECTION } from './logging/BeanPicker';
@@ -14,10 +16,13 @@ import BeanPicker, { BeanSelection, EMPTY_SELECTION } from './logging/BeanPicker
   bought. The mode is the first control because it changes what the rest of the form
   is asking for -- a drink wants a rating, a purchase wants to know which bean.
 
-  What is visible without expanding is what the app actually wants back: photo,
-  the one required field for the chosen mode, would-you-again, and who can see it.
-  Everything else is behind "add details", because a form that asks eleven questions
-  to record one coffee gets abandoned at the fourth.
+  A drink is the long one -- eleven questions, and a form that asks eleven questions
+  to record one coffee gets abandoned at the fourth -- so all it shows outright is a
+  photo, the rating it requires, would-you-again and who can see it. The rest waits
+  behind "add details".
+
+  A bag asks three more things in total and shows all of them. There is nothing to
+  protect the reader from, and hiding them only meant they went unanswered.
 */
 
 interface CoffeeLogFormProps {
@@ -32,23 +37,45 @@ const COFFEE_TYPES = [
   'Cortado', 'Mocha', 'Flat White', 'Cold Brew', 'Iced Coffee', 'Other',
 ];
 
-const CURRENCIES = ['CAD', 'USD', 'KRW', 'EUR', 'JPY', 'GBP', 'CNY', 'AUD'];
+/* The two places this app has cafes in. A log written before the list was cut can
+   still carry something else, so the stored code is offered back to it below rather
+   than silently rewritten to CAD the next time that log is saved. */
+const CURRENCIES = ['CAD', 'USD'];
+
+/* Zone names identify a country even where two countries keep the same clock:
+   Toronto and New York are both Eastern and are still different zones.
+   ponytail: the common US zones only. A reader in one of the smaller ones gets CAD
+   and the picker; extend the list if that ever shows up in real logs. */
+const US_TIME_ZONES = new Set([
+  'America/New_York',
+  'America/Detroit',
+  'America/Chicago',
+  'America/Menominee',
+  'America/Denver',
+  'America/Boise',
+  'America/Phoenix',
+  'America/Los_Angeles',
+  'America/Anchorage',
+  'America/Juneau',
+  'America/Indiana/Indianapolis',
+  'America/Kentucky/Louisville',
+  'Pacific/Honolulu',
+]);
 
 const ATMOSPHERE_TAGS = [
   'cozy', 'modern', 'minimalist', 'casual',
   'industrial', 'vintage', 'bright', 'spacious', 'artistic',
 ];
 
+/* The clock, not the language: someone in Toronto reading the app in Korean is
+   still paying in dollars, and the browser language said otherwise. */
 function defaultCurrency() {
   if (typeof window === 'undefined') return 'CAD';
-  const lang = navigator.language || navigator.languages?.[0] || 'en';
-  if (lang.startsWith('en-US')) return 'USD';
-  if (lang.startsWith('ko')) return 'KRW';
-  if (lang.startsWith('ja')) return 'JPY';
-  if (lang.startsWith('zh-CN')) return 'CNY';
-  if (lang.startsWith('en-GB')) return 'GBP';
-  if (lang.startsWith('en-AU')) return 'AUD';
-  return 'CAD';
+  try {
+    return US_TIME_ZONES.has(Intl.DateTimeFormat().resolvedOptions().timeZone) ? 'USD' : 'CAD';
+  } catch {
+    return 'CAD';
+  }
 }
 
 /* Three states of one decision, not two independent switches. Two toggles let a
@@ -99,10 +126,6 @@ export default function CoffeeLogForm({ initialData, onSubmit, onCancel, isLoadi
   const [coffeeType, setCoffeeType] = useState(initialData?.coffee_type || '');
   const [wantAgain, setWantAgain] = useState<boolean | undefined>(initialData?.want_again ?? undefined);
   const [visibility, setVisibility] = useState<Visibility>(visibilityOf(initialData));
-  /* Buying a bag here is evidence the cafe sells them -- but it is recorded
-     because the person said so, not because the app inferred it from a log
-     they may have kept private. */
-  const [sellsBeans, setSellsBeans] = useState(true);
 
   const [bean, setBean] = useState<BeanSelection>(() =>
     initialData?.bean
@@ -132,6 +155,12 @@ export default function CoffeeLogForm({ initialData, onSubmit, onCancel, isLoadi
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  /* An older log's currency is kept on the list while that log is open, so editing
+     one does not quietly re-denominate what it cost. */
+  const currencyOptions = CURRENCIES.includes(priceCurrency)
+    ? CURRENCIES
+    : [...CURRENCIES, priceCurrency];
+
   const clearError = (field: string) =>
     setErrors((previous) => {
       const next = { ...previous };
@@ -144,6 +173,11 @@ export default function CoffeeLogForm({ initialData, onSubmit, onCancel, isLoadi
 
     const newErrors: Record<string, string> = {};
     if (mode === 'drink' && !rating) newErrors.rating = t('rating_required');
+    /* Each mode has exactly one thing it will not record without. A bag with no bean
+       on it is a row saying somebody was here, which the visit already says. */
+    if (mode === 'purchase' && !bean.bean && !bean.beanText.trim()) {
+      newErrors.bean = t('bean_required');
+    }
     if (comment.length > 1000) newErrors.comment = t('comment_too_long');
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -151,16 +185,22 @@ export default function CoffeeLogForm({ initialData, onSubmit, onCancel, isLoadi
     }
 
     const linkedBeanId = bean.bean && 'id' in bean.bean && bean.bean.id ? bean.bean.id : null;
+    /* State outlives the toggle. Answer four sliders as a drink, switch to a bag, and
+       those answers were still on the way out with it -- about a coffee nobody had
+       drunk yet. Anything the chosen mode does not ask for is not sent. */
+    const drinkOnly = <T,>(value: T) => (mode === 'drink' ? value : undefined);
 
     try {
       await onSubmit({
         mode,
         rating: rating || undefined,
         photo_urls: photoUrls.length > 0 ? photoUrls : undefined,
-        coffee_type: coffeeType || undefined,
-        want_again: wantAgain,
-        // Only from the purchase path, and only as an answer that was given.
-        sells_beans: mode === 'purchase' ? sellsBeans : undefined,
+        coffee_type: drinkOnly(coffeeType || undefined),
+        want_again: drinkOnly(wantAgain),
+        /* Not asked any more: recording a bag bought here is the claim, and it is
+           still the person making it rather than the app inferring it from a log
+           they may have kept private. */
+        sells_beans: mode === 'purchase' ? true : undefined,
         is_public: visibility !== 'private',
         anonymous: visibility === 'anonymous',
         /* Explicit null so clearing the picker actually unlinks: leaving the key
@@ -168,73 +208,71 @@ export default function CoffeeLogForm({ initialData, onSubmit, onCancel, isLoadi
         bean_id: linkedBeanId,
         bean_name_raw: linkedBeanId ? undefined : bean.beanText.trim() || undefined,
         comment: comment.trim() || undefined,
-        dessert: dessert.trim() || undefined,
-        atmosphere_tags: atmosphereTags.length > 0 ? atmosphereTags : undefined,
+        dessert: drinkOnly(dessert.trim() || undefined),
+        atmosphere_tags: drinkOnly(atmosphereTags.length > 0 ? atmosphereTags : undefined),
         price: price || undefined,
         price_currency: price ? priceCurrency : undefined,
-        overall_taste_rating: overallTasteRating,
-        aroma_rating: aromaRating,
-        acidity_rating: acidityRating,
-        body_rating: bodyRating,
-        sweetness_rating: sweetnessRating,
-        bitterness_rating: bitternessRating,
-        aftertaste_rating: aftertasteRating,
+        overall_taste_rating: drinkOnly(overallTasteRating),
+        aroma_rating: drinkOnly(aromaRating),
+        acidity_rating: drinkOnly(acidityRating),
+        body_rating: drinkOnly(bodyRating),
+        sweetness_rating: drinkOnly(sweetnessRating),
+        bitterness_rating: drinkOnly(bitternessRating),
+        aftertaste_rating: drinkOnly(aftertasteRating),
       });
     } catch (error) {
       console.error('Error submitting log:', error);
     }
   };
 
+  /* The row is not `items-start`: stretch is what makes the currency match the
+     field's height without either of them being told a number. */
   const priceField = (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-ink-secondary" htmlFor="log-price">
-        {t('price')} ({t('optional')})
-      </label>
-      <div className="flex gap-2">
-        <select
-          value={priceCurrency}
-          onChange={(event) => setPriceCurrency(event.target.value)}
-          aria-label={t('price_currency')}
-          className="min-h-11 w-28 rounded-(--radius-control) border border-edge-rule bg-surface-raised px-3 text-ink-primary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand"
-        >
-          {CURRENCIES.map((code) => (
-            <option key={code} value={code}>{code}</option>
-          ))}
-        </select>
-        <div className="flex-1">
-          <Input
-            id="log-price"
-            type="number"
-            value={price?.toString() || ''}
-            onChange={(event) => setPrice(event.target.value ? parseFloat(event.target.value) : undefined)}
-            placeholder={t('price_placeholder')}
-            min="0"
-            step="0.01"
-            aria-label={t('price')}
-          />
-        </div>
+    <div className="flex gap-2">
+      <NavSelect
+        label={priceCurrency}
+        ariaLabel={t('price_currency')}
+        value={priceCurrency}
+        onChange={setPriceCurrency}
+        options={currencyOptions.map((code) => ({ value: code, label: code }))}
+        /* Outlined like the field beside it rather than filled: a fill here would be
+           the only filled control left in the form. */
+        triggerClassName="group flex w-20 shrink-0 items-center justify-between rounded-(--radius-control) border border-edge-rule px-3 text-sm text-ink-primary transition-colors hover:border-brand"
+        /* The default panel is a nav-width 11rem, which three letters do not need.
+           A number, not `min-w-0`: the rows carry no width of their own, so removing
+           the floor collapses the popup to nothing. */
+        panelClassName="min-w-24"
+      />
+      <div className="flex-1">
+        <FloatingInput
+          id="log-price"
+          type="number"
+          label={t('price')}
+          value={price?.toString() || ''}
+          onChange={(event) => setPrice(event.target.value ? parseFloat(event.target.value) : undefined)}
+          min="0"
+          step="0.01"
+        />
       </div>
     </div>
   );
 
+  /* The count lives in the field's own corner. On its own line below it was a whole
+     row of the form spent on a number that matters for the last 200 characters. */
   const commentField = (
-    <div>
-      <Input
-        multiline
-        label={`${t('comment')} (${t('optional')})`}
-        value={comment}
-        onChange={(event) => {
-          setComment(event.target.value);
-          clearError('comment');
-        }}
-        rows={4}
-        maxLength={1000}
-        placeholder={t('comment_placeholder')}
-        error={errors.comment}
-        aria-label={t('comment')}
-      />
-      <div className="mt-1 text-right text-xs text-ink-secondary">{comment.length}/1000</div>
-    </div>
+    <FloatingInput
+      multiline
+      label={t('comment')}
+      value={comment}
+      onChange={(event) => {
+        setComment(event.target.value);
+        clearError('comment');
+      }}
+      rows={4}
+      maxLength={1000}
+      error={errors.comment}
+      endHint={`${comment.length}/1000`}
+    />
   );
 
   return (
@@ -252,26 +290,33 @@ export default function CoffeeLogForm({ initialData, onSubmit, onCancel, isLoadi
         ]}
       />
 
-      <PhotoUpload
-        photos={photoUrls}
-        onChange={setPhotoUrls}
-        userId={user?.id || ''}
-        maxPhotos={5}
-      />
+      {/*
+        The two modes ask for different things in a different order, so neither
+        borrows the other's opening. A drink starts with the cup; a bag starts with
+        which bag, because that is the whole content of the log.
 
+        Only a drink has enough left to hide. A bag asks five things and shows all of
+        them: hiding them behind a disclosure only meant they went unanswered.
+      */}
       {mode === 'drink' ? (
         <>
+          <PhotoUpload
+            photos={photoUrls}
+            onChange={setPhotoUrls}
+            userId={user?.id || ''}
+            maxPhotos={5}
+          />
+
+          {/* Still a `datalist` rather than the app's own menu: the list is a
+              shortcut, not the vocabulary, and a cafe is free to sell something
+              nobody put in COFFEE_TYPES. */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-ink-secondary" htmlFor="log-coffee-type">
-              {t('coffee_type')} ({t('optional')})
-            </label>
-            <input
+            <FloatingInput
               id="log-coffee-type"
               list="coffee-types"
+              label={t('coffee_type')}
               value={coffeeType}
               onChange={(event) => setCoffeeType(event.target.value)}
-              placeholder={t('coffee_type_placeholder')}
-              className="min-h-11 w-full rounded-(--radius-control) border border-edge-rule bg-surface-raised px-3 text-ink-primary placeholder:text-ink-secondary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand"
             />
             <datalist id="coffee-types">
               {COFFEE_TYPES.map((type) => <option key={type} value={type} />)}
@@ -294,136 +339,133 @@ export default function CoffeeLogForm({ initialData, onSubmit, onCancel, isLoadi
             />
             {errors.rating && <p className="mt-1 text-sm text-state-danger">{errors.rating}</p>}
           </div>
-        </>
-      ) : (
-        /* Purchase puts the bean on the first screen. Which bag was bought is the
-           whole content of the log -- burying it under "add details" is what made
-           purchases go unrecorded. */
-        <>
-          <BeanPicker value={bean} onChange={setBean} />
-          <div>
-            <label className="flex cursor-pointer items-start gap-3">
-              <input
-                type="checkbox"
-                checked={sellsBeans}
-                onChange={(event) => setSellsBeans(event.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--brand)]"
-              />
-              <span className="text-sm text-ink-primary">{t('sells_beans_here')}</span>
-            </label>
-            {/* A log is written from anywhere, so this answer waits for review like a
-                suggestion made on the cafe page. Saying so here stops the reader
-                looking for a change that is not going to appear. */}
-            <p className="mt-1 pl-7 text-xs text-ink-secondary">{t('sells_beans_review')}</p>
-          </div>
-        </>
-      )}
 
-      {/*
-        Two answers, and neither is chosen until somebody chooses it. A third
-        "not sure" option looked tidy and was preselected, which meant every log
-        shipped an answer nobody gave. Pressing the chosen one takes it back --
-        the same gesture that withdraws a trait observation on the cafe page.
-      */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-ink-secondary">{t('want_again')}</label>
-        <Segmented
-          value={wantAgain === undefined ? '' : wantAgain ? 'yes' : 'no'}
-          label={t('want_again')}
-          onChange={(next) => setWantAgain((current) => (current === (next === 'yes') ? undefined : next === 'yes'))}
-          options={[
-            { id: 'yes', label: t('want_again_yes') },
-            { id: 'no', label: t('want_again_no') },
-          ]}
-        />
-      </div>
+          {/* Out in the open in both modes. It is the one thing somebody arrives
+              wanting to write, and behind a disclosure it went unwritten. */}
+          {commentField}
 
-      <Collapsible.Root>
-        <Collapsible.Trigger className="control-flat min-h-11 w-full rounded-(--radius-control) px-4 text-sm">
-          {t('add_details')}
-        </Collapsible.Trigger>
-        <Collapsible.Panel className="space-y-6 pt-6">
-          {mode === 'drink' ? (
-            <>
+          <Collapsible.Root>
+            <Collapsible.Trigger className="control-flat group flex min-h-11 w-full items-center justify-between rounded-(--radius-control) px-4 text-sm">
+              {t('add_details')}
+              <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[panel-open]:rotate-180" />
+            </Collapsible.Trigger>
+            <Collapsible.Panel className="space-y-6 pt-6">
               <BeanPicker value={bean} onChange={setBean} />
-              <AdvancedCoffeeSection
-                overallTasteRating={overallTasteRating}
-                onOverallTasteRatingChange={setOverallTasteRating}
-                aromaRating={aromaRating}
-                onAromaRatingChange={setAromaRating}
-                acidityRating={acidityRating}
-                onAcidityRatingChange={setAcidityRating}
-                sweetnessRating={sweetnessRating}
-                onSweetnessRatingChange={setSweetnessRating}
-                bitternessRating={bitternessRating}
-                onBitternessRatingChange={setBitternessRating}
-                bodyRating={bodyRating}
-                onBodyRatingChange={setBodyRating}
-                aftertasteRating={aftertasteRating}
-                onAftertasteRatingChange={setAftertasteRating}
-              />
-              {commentField}
-              {priceField}
-              <Input
-                label={`${t('dessert')} (${t('optional')})`}
+            <AdvancedCoffeeSection
+              overallTasteRating={overallTasteRating}
+              onOverallTasteRatingChange={setOverallTasteRating}
+              aromaRating={aromaRating}
+              onAromaRatingChange={setAromaRating}
+              acidityRating={acidityRating}
+              onAcidityRatingChange={setAcidityRating}
+              sweetnessRating={sweetnessRating}
+              onSweetnessRatingChange={setSweetnessRating}
+              bitternessRating={bitternessRating}
+              onBitternessRatingChange={setBitternessRating}
+              bodyRating={bodyRating}
+              onBodyRatingChange={setBodyRating}
+              aftertasteRating={aftertasteRating}
+              onAftertasteRatingChange={setAftertasteRating}
+            />
+            {priceField}
+              <FloatingInput
+                label={t('dessert')}
                 value={dessert}
                 onChange={(event) => setDessert(event.target.value)}
-                placeholder={t('dessert_placeholder')}
-                aria-label={t('dessert')}
               />
-              <div>
-                <label className="mb-2 block text-sm font-medium text-ink-secondary">
-                  {t('atmosphere_tags')}{' '}
-                  {atmosphereTags.length > 0 && (
-                    <span className="text-xs text-ink-secondary">({atmosphereTags.length}/3)</span>
-                  )}
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {ATMOSPHERE_TAGS.map((tag) => {
-                    const selected = atmosphereTags.includes(tag);
-                    const disabled = !selected && atmosphereTags.length >= 3;
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        disabled={disabled}
-                        aria-pressed={selected}
-                        onClick={() =>
-                          setAtmosphereTags(
-                            selected
-                              ? atmosphereTags.filter((each) => each !== tag)
-                              : [...atmosphereTags, tag]
-                          )
-                        }
-                        className={`control-flat min-h-11 rounded-(--radius-pill) px-3 text-sm ${selected ? 'is-active' : ''}`}
-                      >
-                        {t(`atmosphere_${tag}`)}
-                      </button>
-                    );
-                  })}
-                </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-ink-secondary">
+                {t('atmosphere_tags')}{' '}
+                {atmosphereTags.length > 0 && (
+                  <span className="text-xs text-ink-secondary">({atmosphereTags.length}/3)</span>
+                )}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {ATMOSPHERE_TAGS.map((tag) => {
+                  const selected = atmosphereTags.includes(tag);
+                  const disabled = !selected && atmosphereTags.length >= 3;
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      disabled={disabled}
+                      aria-pressed={selected}
+                      onClick={() =>
+                        setAtmosphereTags(
+                          selected
+                            ? atmosphereTags.filter((each) => each !== tag)
+                            : [...atmosphereTags, tag]
+                        )
+                      }
+                      className={`control-flat min-h-11 rounded-(--radius-pill) px-3 text-sm ${selected ? 'is-active' : ''}`}
+                    >
+                      {t(`atmosphere_${tag}`)}
+                    </button>
+                  );
+                })}
               </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-ink-secondary">
-                  {t('rating')} ({t('optional')})
-                </label>
-                <StarRating
-                  rating={rating}
-                  size="xl"
-                  onChange={setRating}
-                  label={t('rating')}
-                  starLabel={(value) => t('rate_n', { n: value })}
-                />
-              </div>
-              {commentField}
-              {priceField}
-            </>
-          )}
-        </Collapsible.Panel>
-      </Collapsible.Root>
+            </div>
+          </Collapsible.Panel>
+          </Collapsible.Root>
+
+          {/*
+            Two answers, and neither is chosen until somebody chooses it. A third
+            "not sure" option looked tidy and was preselected, which meant every log
+            shipped an answer nobody gave. Pressing the chosen one takes it back --
+            the same gesture that withdraws a trait observation on the cafe page.
+
+            Drinks only: nobody has tasted a bag they just bought, so there is no
+            honest answer to give about it yet. That answer arrives with the cup.
+          */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ink-secondary">{t('want_again')}</label>
+            <Segmented
+              value={wantAgain === undefined ? '' : wantAgain ? 'yes' : 'no'}
+              label={t('want_again')}
+              onChange={(next) => setWantAgain((current) => (current === (next === 'yes') ? undefined : next === 'yes'))}
+              options={[
+                { id: 'yes', label: t('want_again_yes') },
+                { id: 'no', label: t('want_again_no') },
+              ]}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <PhotoUpload
+            photos={photoUrls}
+            onChange={setPhotoUrls}
+            userId={user?.id || ''}
+            maxPhotos={5}
+          />
+
+          <BeanPicker
+            value={bean}
+            onChange={(next) => {
+              setBean(next);
+              clearError('bean');
+            }}
+            beanRequired
+            beanError={errors.bean}
+          />
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ink-secondary">
+              {t('rating')}
+            </label>
+            <StarRating
+              rating={rating}
+              size="xl"
+              onChange={setRating}
+              label={t('rating')}
+              starLabel={(value) => t('rate_n', { n: value })}
+            />
+          </div>
+
+          {priceField}
+          {commentField}
+        </>
+      )}
 
       {/* Directly above Save, because the default is public and nobody should find
           that out after pressing it. */}

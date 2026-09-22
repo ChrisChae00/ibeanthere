@@ -1,10 +1,15 @@
 'use client';
 
+import { Collapsible } from '@base-ui/react/collapsible';
+import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { IntensitySlider } from '@/shared/ui';
 
 /*
-  How it tasted, on seven sliders.
+  How it tasted, on seven sliders. Only the overall one is offered outright: most
+  people have an answer to "how was it" and no answer to "how was the aftertaste",
+  and six sliders sitting open made the honest reply -- leave them alone -- look
+  like six things left unfinished. The six live behind their own disclosure.
 
   Everything else this section used to hold is gone: bean origin, process and roast
   level are properties of a bean, not of one cup, so they belong to the catalogue
@@ -59,7 +64,9 @@ export default function AdvancedCoffeeSection({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm font-medium text-ink-secondary">{t('tasting_notes')}</p>
+      {/* No "Tasting notes" heading above it: the slider under that heading was
+          labelled "Overall Taste", which is the same sentence twice and one of them
+          took a row. */}
       <IntensitySlider
         value={overallTasteRating}
         onChange={onOverallTasteRatingChange}
@@ -68,18 +75,25 @@ export default function AdvancedCoffeeSection({
         max={10}
         step={1}
       />
-      <div className="border-t border-edge-rule" />
-      {sliders.map((slider) => (
-        <IntensitySlider
-          key={slider.label}
-          value={slider.value}
-          onChange={slider.onChange}
-          label={slider.label}
-          min={0}
-          max={10}
-          step={1}
-        />
-      ))}
+      <Collapsible.Root>
+        <Collapsible.Trigger className="control-flat group flex min-h-11 w-full items-center justify-between rounded-(--radius-control) px-4 text-sm">
+          {t('detailed_taste')}
+          <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-data-[panel-open]:rotate-180" />
+        </Collapsible.Trigger>
+        <Collapsible.Panel className="space-y-4 pt-4">
+          {sliders.map((slider) => (
+            <IntensitySlider
+              key={slider.label}
+              value={slider.value}
+              onChange={slider.onChange}
+              label={slider.label}
+              min={0}
+              max={10}
+              step={1}
+            />
+          ))}
+        </Collapsible.Panel>
+      </Collapsible.Root>
     </div>
   );
 }
