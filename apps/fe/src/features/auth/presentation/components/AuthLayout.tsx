@@ -8,10 +8,9 @@ interface AuthLayoutProps {
 }
 
 /*
-  Photograph on the left, form on the right, split in half. The photograph is the
-  landing hero's portrait still, so arriving here from the landing keeps the same room,
-  and it sits inset as a card rather than bleeding to the edge: it is a picture beside
-  the form, not the page's ground.
+  Photograph on the left, form on the right, split in half. It sits inset as a card
+  rather than bleeding to the edge: it is a picture beside the form, not the page's
+  ground.
 
   Below `lg` the photograph is not rendered at all and the form is the whole page: a
   half-width panel on a phone is a strip of wall above the fields. The photograph's
@@ -29,7 +28,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
     <div className="grid min-h-[calc(100svh-var(--nav-h))] lg:grid-cols-2">
       <div className="hidden p-4 lg:block">
         <div className="relative h-full overflow-hidden rounded-card bg-scrim-media">
-          <PixelImage src="/pics/hero-tall.webp" sizes="50vw" />
+          <PixelImage src="/pics/auth-panel.webp" sizes="50vw" />
           <div className="absolute inset-0 bg-linear-to-t from-scrim-media/85 via-scrim-media/25 to-transparent" />
 
           <div className="absolute inset-x-0 bottom-0 p-10 xl:p-14">
