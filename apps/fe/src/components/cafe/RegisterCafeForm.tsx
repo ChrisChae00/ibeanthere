@@ -24,9 +24,7 @@ interface RegisterCafeFormProps {
 
 type LocationMode = 'current' | 'map' | 'postcode';
 
-/* Three is what someone standing in a cafe will actually take; the rest come later
-   from the cafe's own page. */
-const MAX_PHOTOS = 3;
+const MAX_PHOTOS = 5;
 
 export default function RegisterCafeForm({
   initialLocation,

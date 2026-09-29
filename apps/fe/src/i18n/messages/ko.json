@@ -804,7 +804,7 @@
       "apply_to_all_days": "모든 요일에 적용",
       "clear_all_hours": "모두 지우기",
       "photos_label": "사진 (선택)",
-      "photos_hint": "사진은 3장까지 올릴 수 있습니다. 별을 누르면 대표 사진이 됩니다.",
+      "photos_hint": "사진은 5장까지 올릴 수 있습니다. 별을 누르면 대표 사진이 됩니다.",
       "main_photo": "대표",
       "set_as_main": "대표 사진으로 설정",
       "quick_fill_label": "Google 지도에서 가져오기",
