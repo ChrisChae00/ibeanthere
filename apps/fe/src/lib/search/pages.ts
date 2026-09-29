@@ -32,9 +32,6 @@ export const PAGES: PageEntry[] = [
   { id: 'terms', path: '/terms', keywords: 'terms of service 이용약관 약관' },
 ];
 
-/** The rows shown before anything is typed. */
-export const QUICK_PAGE_IDS = ['map', 'dropbean', 'register_cafe', 'guide'];
-
 const normalize = (s: string) => s.normalize('NFC').toLowerCase().trim();
 
 /**

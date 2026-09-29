@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDebounce } from '@/hooks/useDebounce';
 import { searchCafesByText } from '@/lib/api/cafes';
 import { searchUsers } from '@/lib/api/users';
-import { PAGES, QUICK_PAGE_IDS, matchDrinks, matchPages } from '@/lib/search/pages';
+import { matchDrinks, matchPages } from '@/lib/search/pages';
 
 /*
   One search for the three kinds of thing a reader looks for by name: a cafe, a
@@ -38,7 +38,7 @@ type Hit = {
   icon?: Mark;
 };
 
-type Group = { value: Kind | 'quick'; items: Hit[] };
+type Group = { value: Kind; items: Hit[] };
 
 // The endpoints' own minimums; a shorter query would only earn a 422.
 const CAFE_MIN = 2;
@@ -160,16 +160,12 @@ function useSearchResults(query: string, locale: string, retry: number) {
       ]
     : [];
 
-  const quick: Hit[] = PAGES.filter((page) => QUICK_PAGE_IDS.includes(page.id)).map((page) =>
-    toPageHit(page.id, page.path),
-  );
-
   const settled = remote.q === debounced && debounced === trimmed;
   const loading = trimmed.length >= CAFE_MIN && !settled;
   // Results from a previous query stay out of the list rather than flashing under the new one.
   const fresh = settled ? remote : { cafes: [], people: [], failed: false };
 
-  return { trimmed, pages, quick, loading, ...fresh };
+  return { trimmed, pages, loading, ...fresh };
 }
 
 function Leading({ hit }: { hit: Hit }) {
@@ -259,25 +255,23 @@ function ResultsBody({
 
   return (
     <>
-      {query && (
-        <div role="group" aria-label={t('filter')} className="flex flex-wrap gap-1.5 px-2 pt-1.5 pb-2">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              aria-pressed={category === c}
-              // Keeps focus in the input, so the popup stays open and typing carries on.
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => onCategory(c)}
-              className={`control-flat h-8 rounded-(--radius-pill) px-3 text-xs font-medium ${
-                category === c ? 'is-active' : ''
-              }`}
-            >
-              {t(`categories.${c}`)}
-            </button>
-          ))}
-        </div>
-      )}
+      <div role="group" aria-label={t('filter')} className="flex flex-wrap gap-1.5 px-2 pt-1.5 pb-2">
+        {CATEGORIES.map((c) => (
+          <button
+            key={c}
+            type="button"
+            aria-pressed={category === c}
+            // Keeps focus in the input, so the popup stays open and typing carries on.
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => onCategory(c)}
+            className={`control-flat h-8 rounded-(--radius-pill) px-3 text-xs font-medium ${
+              category === c ? 'is-active' : ''
+            }`}
+          >
+            {t(`categories.${c}`)}
+          </button>
+        ))}
+      </div>
 
       <Autocomplete.Status>
         {status && <div className="px-3 py-3 text-sm text-ink-secondary">{status}</div>}
@@ -323,17 +317,18 @@ function useSearchState(locale: string, onDone: () => void) {
   const [category, setCategory] = useState<Category>('all');
   const [retry, setRetry] = useState(0);
   const results = useSearchResults(query, locale, retry);
-  const { trimmed, pages, quick, loading, cafes, people, failed } = results;
+  const { trimmed, pages, loading, cafes, people, failed } = results;
 
   const groups = useMemo<Group[]>(() => {
-    if (!trimmed) return [{ value: 'quick', items: quick }];
+    // An empty field shows only the category row; there is nothing to list yet.
+    if (!trimmed) return [];
     const all = category === 'all';
     const pick = (kind: Kind, hits: Hit[]): Group[] =>
       (all || category === kind) && hits.length
         ? [{ value: kind, items: all ? hits.slice(0, ALL_TAB_LIMIT[kind]) : hits }]
         : [];
     return [...pick('cafe', cafes), ...pick('person', people), ...pick('page', pages)];
-  }, [trimmed, category, cafes, people, pages, quick]);
+  }, [trimmed, category, cafes, people, pages]);
 
   let status: ReactNode = null;
   if (loading) {
@@ -352,7 +347,7 @@ function useSearchState(locale: string, onDone: () => void) {
         </button>
       </span>
     );
-  } else if (category === 'person' && trimmed.length < personMin(trimmed)) {
+  } else if (trimmed && category === 'person' && trimmed.length < personMin(trimmed)) {
     status = t('person_min', { min: personMin(trimmed) });
   } else if (trimmed && trimmed.length < CAFE_MIN && category === 'cafe') {
     status = t('cafe_min', { min: CAFE_MIN });
