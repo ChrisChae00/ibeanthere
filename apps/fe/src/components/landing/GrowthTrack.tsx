@@ -43,17 +43,24 @@ const SNAP = { type: 'spring', stiffness: 180, damping: 26 } as const;
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 
 type Point = { x: number; y: number };
-type Gap = { x1: number; y1: number; x2: number; y2: number; length: number };
+type Gap = { x1: number; y1: number; x2: number; y2: number };
 
 /*
-  One gap's worth of ink, drawn by its own dash offset.
+  One gap's worth of ink, drawn by its own `pathLength`.
 
   Deliberately not one path with four subpaths: SVG restarts a dash pattern at
   every subpath, so a single offset over the whole track drew a little of all
   four gaps at once instead of filling them in turn.
+
+  `pathLength` rather than a dash array sized in pixels: that array was fixed at the
+  first measure, and once the box settled wider (a phone does, as the page lays out)
+  the dash no longer matched the line and a stub of ink showed at the far end of
+  every gap.
 */
 function Ink({ gap, index, at }: { gap: Gap; index: number; at: ReturnType<typeof useMotionValue<number>> }) {
-  const offset = useTransform(at, (v) => gap.length * (1 - clamp(v - index, 0, 1)));
+  const progress = useTransform(at, (v) => clamp(v - index, 0, 1));
+  // At zero length a round cap still paints a dot, so a gap not yet reached draws nothing.
+  const opacity = useTransform(at, (v) => (v > index ? 1 : 0));
   return (
     <motion.line
       x1={gap.x1}
@@ -63,7 +70,7 @@ function Ink({ gap, index, at }: { gap: Gap; index: number; at: ReturnType<typeo
       stroke="var(--brand)"
       strokeWidth={2}
       strokeLinecap="round"
-      style={{ strokeDasharray: gap.length, strokeDashoffset: offset }}
+      style={{ pathLength: progress, opacity }}
     />
   );
 }
@@ -125,7 +132,6 @@ export function GrowthTrack({ stages }: { stages: TrackStage[] }) {
       y1: from.y + uy * trim,
       x2: to.x - ux * trim,
       y2: to.y - uy * trim,
-      length: Math.max(0, length - trim * 2),
     };
   });
 
