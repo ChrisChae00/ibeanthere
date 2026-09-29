@@ -972,6 +972,8 @@
       "rate_n": "{n} out of 5",
       "rating": "Rating",
       "rating_required": "Rating is required",
+      "move_earlier": "Move earlier",
+      "move_later": "Move later",
       "remove": "Remove",
       "roaster": "Roaster",
       "roaster_clear": "Clear roaster",

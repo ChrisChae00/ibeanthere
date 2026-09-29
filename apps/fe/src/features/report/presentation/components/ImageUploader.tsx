@@ -2,8 +2,10 @@
 
 import React, { useRef, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { X, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { isHeicFile, convertHeicToWebp, HeicNotSupportedError } from '@/shared/lib/image/convertHeicToWebp';
+import { usePhotoReorder } from '@/shared/lib/image/usePhotoReorder';
+import PhotoTileControls from '@/shared/ui/PhotoTileControls';
 
 interface ImageUploaderProps {
   images: File[];
@@ -118,6 +120,8 @@ export default function ImageUploader({
     setError(null);
   }, [images, onImagesChange]);
 
+  const { move, tileProps, dragIndex } = usePhotoReorder(images, onImagesChange);
+
   const canAddMore = images.length < maxImages;
   const isProcessing = disabled || isConverting;
 
@@ -180,21 +184,17 @@ export default function ImageUploader({
           {images.map((file, index) => (
             <div
               key={`${file.name}-${index}`}
-              className="relative group w-20 h-20 rounded-xl overflow-hidden border border-border"
+              {...(!disabled && tileProps(index))}
+              className={`relative group w-20 h-20 rounded-xl overflow-hidden border border-border ${disabled ? '' : 'cursor-grab'} ${dragIndex === index ? 'opacity-40' : ''}`}
             >
               <img
                 src={URL.createObjectURL(file)}
                 alt={`Preview ${index + 1}`}
+                draggable={false}
                 className="w-full h-full object-cover"
               />
               {!disabled && (
-                <button
-                  type="button"
-                  onClick={() => removeImage(index)}
-                  className="absolute top-0.5 right-0.5 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-3 h-3 text-white" />
-                </button>
+                <PhotoTileControls index={index} count={images.length} onMove={move} onRemove={removeImage} />
               )}
             </div>
           ))}

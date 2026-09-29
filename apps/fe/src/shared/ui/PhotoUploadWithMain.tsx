@@ -6,6 +6,8 @@ import CameraIcon from './CameraIcon';
 import { useToast } from '@/contexts/ToastContext';
 import { uploadCafeImage } from '@/shared/lib/supabase/storage';
 import { isHeicFile, convertHeicToWebp, HeicNotSupportedError } from '@/shared/lib/image/convertHeicToWebp';
+import { indexAfterMove, usePhotoReorder } from '@/shared/lib/image/usePhotoReorder';
+import PhotoTileControls from './PhotoTileControls';
 
 interface PhotoUploadWithMainProps {
   photos: string[];
@@ -129,6 +131,12 @@ export default function PhotoUploadWithMain({
     onMainIndexChange(index);
   };
 
+  // The main photo is a choice of photo, not of slot, so it travels with the move.
+  const { move, tileProps, dragIndex } = usePhotoReorder(photos, (next, from, to) => {
+    onChange(next);
+    onMainIndexChange(indexAfterMove(mainIndex, from, to));
+  });
+
   const isProcessing = uploadingCount > 0 || convertingCount > 0;
 
   return (
@@ -143,10 +151,15 @@ export default function PhotoUploadWithMain({
       {photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {photos.map((photo, index) => (
-            <div key={index} className="relative aspect-square rounded-lg overflow-hidden group">
+            <div
+              key={photo}
+              {...tileProps(index)}
+              className={`relative aspect-square rounded-lg overflow-hidden group cursor-grab ${dragIndex === index ? 'opacity-40' : ''}`}
+            >
               <img
                 src={photo}
                 alt={`${tLog('photo')} ${index + 1}`}
+                draggable={false}
                 className="w-full h-full object-cover"
               />
 
@@ -157,7 +170,7 @@ export default function PhotoUploadWithMain({
                 className={`absolute top-1 left-1 p-1.5 rounded-full transition-all ${
                   mainIndex === index
                     ? 'bg-accent text-white'
-                    : 'bg-black/50 text-white/70 opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-white'
+                    : 'bg-black/50 text-white/70 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-accent hover:text-white'
                 }`}
                 title={mainIndex === index ? t('main_photo') : t('set_as_main')}
               >
@@ -166,17 +179,7 @@ export default function PhotoUploadWithMain({
                 </svg>
               </button>
 
-              {/* Remove button */}
-              <button
-                type="button"
-                onClick={() => removePhoto(index)}
-                className="absolute top-1 right-1 p-1 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error"
-                title={tLog('remove')}
-              >
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <PhotoTileControls index={index} count={photos.length} onMove={move} onRemove={removePhoto} />
 
               {/* Main label */}
               {mainIndex === index && (

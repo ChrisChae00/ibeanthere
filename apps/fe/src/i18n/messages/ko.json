@@ -972,6 +972,8 @@
       "rate_n": "5점 중 {n}점",
       "rating": "평점",
       "rating_required": "평점은 필수입니다",
+      "move_earlier": "앞으로 이동",
+      "move_later": "뒤로 이동",
       "remove": "삭제",
       "roaster": "로스터",
       "roaster_clear": "로스터 지우기",
