@@ -53,7 +53,7 @@ export default function DropBeanButton({
   const t = useTranslations('drop_bean');
   const { user } = useAuth();
   const { showToast } = useToast();
-  const { coords, getCurrentLocation, isLoading: locationLoading, error: locationError } = useLocation();
+  const { getCurrentLocation, isLoading: locationLoading, error: locationError } = useLocation();
   
   const [isLoading, setIsLoading] = useState(false);
   const [beanStatus, setBeanStatus] = useState(initialBeanStatus);
@@ -163,18 +163,10 @@ export default function DropBeanButton({
     setIsLoading(true);
 
     try {
-      // Use existing coords from hook if available, otherwise fetch fresh
-      let userLat: number;
-      let userLng: number;
-
-      if (coords) {
-        userLat = coords.latitude;
-        userLng = coords.longitude;
-      } else {
-        const position = await getCurrentLocation();
-        userLat = position.latitude;
-        userLng = position.longitude;
-      }
+      // The 50m check needs where the user is now, not a fix saved minutes ago
+      const position = await getCurrentLocation(30_000);
+      const userLat = position.latitude;
+      const userLng = position.longitude;
 
       /*
         The same 50m the server enforces, not a roomier client gate. A wider one

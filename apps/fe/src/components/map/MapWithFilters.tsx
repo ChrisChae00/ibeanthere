@@ -392,7 +392,7 @@ export default function MapWithFilters({ locale, mapTitle, mapSubtitle }: MapWit
     }
     
     // Try to get fresh location
-    getCurrentLocation()
+    getCurrentLocation(0)
       .then(() => {
         // Location successfully retrieved - center will be updated by useEffect
         setForceCenterUpdate(true);
@@ -428,7 +428,7 @@ export default function MapWithFilters({ locale, mapTitle, mapSubtitle }: MapWit
 
   const handleRequestPermission = async (): Promise<boolean> => {
     try {
-      await getCurrentLocation();
+      await getCurrentLocation(0);
       setLocationPermission('granted');
       // Auto-start tracking when permission is granted (if user preference allows)
       const autoTrackingEnabled = typeof window !== 'undefined' 

@@ -9,6 +9,7 @@ import { searchCafes } from '@/lib/api/cafes';
 import { CafeMapData } from '@/types/map';
 import { calculateDistance } from '@/lib/utils/checkIn';
 import { DropBeanButton } from '@/components/cafe';
+import LocationPermissionOverlay from '@/components/map/LocationPermissionOverlay';
 import { Button, LoadingSpinner, LocationIcon } from '@/shared/ui';
 
 const NEARBY_RADIUS_METERS = 50;
@@ -28,6 +29,7 @@ export default function NearbyPage(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locationRequested, setLocationRequested] = useState(false);
+  const locationDenied = locationError === 'Location permission denied';
 
   const fetchNearbyCafes = async (lat: number, lng: number) => {
     setIsLoading(true);
@@ -157,8 +159,13 @@ export default function NearbyPage(
             </div>
           )}
 
-          {/* Location permission required */}
-          {!coords && !locationLoading && !locationRequested && (
+          {/* A denied prompt never comes back on its own, so show how to allow it in the browser instead */}
+          {locationDenied && (
+            <LocationPermissionOverlay onRequestPermission={handleEnableLocation} permissionState="denied" />
+          )}
+
+          {/* Location permission required, or the last attempt failed for another reason */}
+          {!coords && !locationLoading && !locationDenied && (
             <Notice
               heading={t('location_required')}
               line={t('enable_location_hint')}
@@ -182,7 +189,7 @@ export default function NearbyPage(
           )}
 
           {/* Nothing in range */}
-          {!isLoading && !locationLoading && locationRequested && cafes.length === 0 && (
+          {!isLoading && !locationLoading && coords && locationRequested && cafes.length === 0 && (
             <Notice
               heading={t('no_cafes')}
               line={t('no_cafes_hint')}

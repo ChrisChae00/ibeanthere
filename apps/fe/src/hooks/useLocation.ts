@@ -11,13 +11,40 @@ interface LocationState {
 // Global singleton state for location to share across all hook instances
 let globalCoords: GeolocationCoordinates | null = null;
 let lastFetchTime: number = 0;
-const CACHE_STALE_TIME = 30000; // 30 seconds
+// Reusing a recent fix across reloads keeps mobile browsers from asking for permission on every page
+const CACHE_STALE_TIME = 10 * 60 * 1000;
+const STORAGE_KEY = 'last_location';
 const listeners = new Set<(coords: GeolocationCoordinates | null) => void>();
 
-function updateGlobalCoords(coords: GeolocationCoordinates | null) {
+function updateGlobalCoords(coords: GeolocationCoordinates | null, time = Date.now()) {
   globalCoords = coords;
-  lastFetchTime = Date.now();
+  lastFetchTime = time;
   listeners.forEach(listener => listener(coords));
+}
+
+function saveCoords(coords: GeolocationCoordinates | null) {
+  try {
+    if (coords) {
+      const { latitude, longitude, accuracy } = coords;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ latitude, longitude, accuracy, time: lastFetchTime }));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  } catch {
+    // Storage blocked (private mode); the in-memory cache still works
+  }
+}
+
+function loadSavedCoords() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
+    if (saved && typeof saved.latitude === 'number' && typeof saved.longitude === 'number' && Date.now() - saved.time < CACHE_STALE_TIME) {
+      // Only latitude, longitude and accuracy are read anywhere, so the plain object stands in
+      updateGlobalCoords(saved as GeolocationCoordinates, saved.time);
+    }
+  } catch {
+    // Unreadable entry; fall through to a fresh fetch
+  }
 }
 
 export function useLocation() {
@@ -38,10 +65,12 @@ export function useLocation() {
     };
   }, []);
 
-  const getCurrentLocation = useCallback(async (): Promise<GeolocationCoordinates> => {
-    // 1. Check if we have a fresh global coordinate already
-    const now = Date.now();
-    if (globalCoords && (now - lastFetchTime) < CACHE_STALE_TIME) {
+  // Pass maxAge 0 when the user asks for their location, so a tap always gets a fresh fix
+  const getCurrentLocation = useCallback(async (maxAge = CACHE_STALE_TIME): Promise<GeolocationCoordinates> => {
+    if (!globalCoords) {
+      loadSavedCoords();
+    }
+    if (globalCoords && (Date.now() - lastFetchTime) < maxAge) {
       return globalCoords;
     }
 
@@ -51,6 +80,7 @@ export function useLocation() {
           (position) => {
             // Update global cache and notify all listeners
             updateGlobalCoords(position.coords);
+            saveCoords(position.coords);
             
             setLocation(prev => ({
               ...prev,
@@ -82,9 +112,13 @@ export function useLocation() {
         timeout: 15000, 
         maximumAge: 10000 
       });
-    } catch (_firstError: unknown) {
+    } catch (firstError: unknown) {
       // If timed out or failed, try again with low accuracy
       try {
+        // A denial is final; asking again would show iOS users a second prompt
+        if (firstError instanceof GeolocationPositionError && firstError.code === firstError.PERMISSION_DENIED) {
+          throw firstError;
+        }
         return await fetchLocation({
           enableHighAccuracy: false,
           timeout: 15000, 
@@ -117,6 +151,7 @@ export function useLocation() {
         
         if (shouldClearCoords) {
           updateGlobalCoords(null);
+          saveCoords(null);
         }
         
         throw new Error(errorMessage);

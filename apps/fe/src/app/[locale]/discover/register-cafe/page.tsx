@@ -8,6 +8,7 @@ import { useLocation } from '@/hooks/useLocation';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/contexts/ToastContext';
 import RegisterCafeForm from '@/components/cafe/RegisterCafeForm';
+import LocationPermissionOverlay from '@/components/map/LocationPermissionOverlay';
 import { LoadingSpinner } from '@/shared/ui';
 import { UserLocationIcon } from '@/shared/ui';
 
@@ -121,35 +122,45 @@ export default function RegisterCafePage() {
                   <UserLocationIcon size={20} color="var(--marker-user)" />
                 </button>
               </div>
-              <div className="relative min-h-0 flex-1 overflow-hidden rounded-(--radius-card) border border-edge-rule">
-                {mapCenter ? (
-                  <InteractiveMap
-                    cafes={[]}
-                    center={mapCenter}
-                    zoom={18}
-                    userLocation={coords ? { lat: coords.latitude, lng: coords.longitude } : undefined}
-                    selectedLocation={selectedLocation || undefined}
-                    onMapClick={handleMapClick}
+              {/* A denied prompt never comes back on its own, so show how to allow it in the browser instead */}
+              {locationError === 'Location permission denied' ? (
+                <div className="min-h-0 flex-1">
+                  <LocationPermissionOverlay
+                    onRequestPermission={() => getCurrentLocation(0).catch(() => {})}
+                    permissionState="denied"
                   />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-surface-raised p-8 text-center">
-                    <div>
-                      <LoadingSpinner size="lg" />
-                      <p className="mt-4 text-ink-secondary">
-                        {locationLoading ? tMap('loading_location') : tMap('location_permission_title')}
-                      </p>
-                      {!locationLoading && !locationError && (
-                        <button
-                          onClick={() => getCurrentLocation().catch(() => {})}
-                          className="btn-shade mt-4 min-h-11 rounded-(--btn-radius) bg-brand px-5 font-semibold text-ink-on-brand"
-                        >
-                          {tMap('share_location')}
-                        </button>
-                      )}
+                </div>
+              ) : (
+                <div className="relative min-h-0 flex-1 overflow-hidden rounded-(--radius-card) border border-edge-rule">
+                  {mapCenter ? (
+                    <InteractiveMap
+                      cafes={[]}
+                      center={mapCenter}
+                      zoom={18}
+                      userLocation={coords ? { lat: coords.latitude, lng: coords.longitude } : undefined}
+                      selectedLocation={selectedLocation || undefined}
+                      onMapClick={handleMapClick}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center bg-surface-raised p-8 text-center">
+                      <div>
+                        <LoadingSpinner size="lg" />
+                        <p className="mt-4 text-ink-secondary">
+                          {locationLoading ? tMap('loading_location') : tMap('location_permission_title')}
+                        </p>
+                        {!locationLoading && (
+                          <button
+                            onClick={() => getCurrentLocation(0).catch(() => {})}
+                            className="btn-shade mt-4 min-h-11 rounded-(--btn-radius) bg-brand px-5 font-semibold text-ink-on-brand"
+                          >
+                            {tMap('share_location')}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/*
