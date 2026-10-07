@@ -64,9 +64,9 @@ function MapStatusBanner({
 
 
 /*
-  The card opens beside the pin, not in the middle of the screen: what was tapped has to
-  stay in view. It sits above the pin where there is room and below it otherwise, and is
-  held inside the frame horizontally so it never hangs off the map's edge.
+  The card opens beside the pin where the frame is wide enough, so what was tapped stays
+  in view. On a narrow frame there is no "beside", and the card is centred in the frame
+  instead, where it has the most height to show the record.
 */
 const CARD_WIDTH = 340;
 const CARD_GAP = 14;
@@ -115,20 +115,16 @@ function cardPosition(
     return { left, top, maxHeight: Math.max(height - top - FRAME_MARGIN, 220) };
   }
 
-  /* No room beside it: the card keeps the pin's own column, above or below. */
-  const halfCard = Math.min(CARD_WIDTH, width - FRAME_MARGIN * 2) / 2;
-  const minLeft = halfCard + FRAME_MARGIN;
-  const maxLeft = Math.max(width - halfCard - FRAME_MARGIN, minLeft);
-  const columnLeft = Math.min(Math.max(point.x, minLeft), maxLeft);
-
-  const roomAbove = point.y - FRAME_MARGIN * 2;
-  const above = roomAbove > 260;
-
+  /*
+    No room beside it (a phone): the card takes the middle of the frame with the frame's
+    full height to grow into. Above or below the pin it only had what was left of a short
+    frame, so the record had to be read through a small scrolling window.
+  */
   return {
-    left: columnLeft,
-    top: above ? point.y - CARD_GAP : point.y + CARD_GAP,
-    transform: above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
-    maxHeight: Math.max((above ? roomAbove : height - point.y - CARD_GAP * 2), 220),
+    left: '50%',
+    top: '50%',
+    transform: 'translate(-50%, -50%)',
+    maxHeight: Math.max(height - FRAME_MARGIN * 2, 220),
   };
 }
 
