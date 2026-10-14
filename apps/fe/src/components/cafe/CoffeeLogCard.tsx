@@ -288,7 +288,7 @@ export default function CoffeeLogCard({ log, onEdit, onDelete, cafeName, hideCaf
 
       {/* Photos */}
       {log.photo_urls && log.photo_urls.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="flex gap-2 mb-4 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {log.photo_urls.map((url, index) => (
             <button
               key={index}
@@ -297,7 +297,7 @@ export default function CoffeeLogCard({ log, onEdit, onDelete, cafeName, hideCaf
                 setLightboxIndex(index);
                 setLightboxOpen(true);
               }}
-              className="relative aspect-square rounded-lg overflow-hidden cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-brand"
+              className="relative shrink-0 w-[42%] sm:w-40 aspect-square snap-start rounded-lg overflow-hidden cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand"
             >
               <img
                 src={url}
