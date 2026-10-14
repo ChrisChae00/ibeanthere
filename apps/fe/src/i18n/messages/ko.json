@@ -450,6 +450,7 @@
     "filters": {
       "label": "필터",
       "active": "필터 {count}개",
+      "open_now": "영업 중",
       "sells_beans": "원두 판매",
       "roasts_on_site": "직접 로스팅",
       "filter_coffee": "필터 커피",
@@ -700,6 +701,7 @@
       "filter_all": "전체",
       "filter_closest": "가까운 순",
       "filter_most_popular": "인기 순",
+      "filter_open_now": "영업 중",
       "trending_this_week": "이번 주 트렌딩",
       "showing_cafes": "카페 {count}곳 표시 중",
       "no_location": "이 필터는 위치 정보가 필요합니다"

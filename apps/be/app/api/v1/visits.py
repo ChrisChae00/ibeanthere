@@ -685,7 +685,10 @@ async def get_trending_cafes(
                 # not "top of whichever page you happen to be looking at"
                 "trending_rank": cafe.get("trending_rank"),
                 "image": cafe.get("image"),
-                "main_image": main_image
+                "main_image": main_image,
+                # Lets the explore grid answer "open now" without a second request
+                "business_hours": cafe.get("business_hours"),
+                "timezone": cafe.get("timezone"),
             })
 
         _set_trending_cache(cache_key, formatted_cafes)

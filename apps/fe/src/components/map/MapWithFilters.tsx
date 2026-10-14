@@ -21,6 +21,7 @@ import { CafeMapData } from '@/types/map';
 
 import { API_BASE_URL, apiFetch } from '@/lib/api/client';
 import { calculateDistance } from '@/lib/utils/checkIn';
+import { isOpenNow } from '@/lib/utils/businessHours';
 import { getTrendingCafes } from '@/lib/api/cafes';
 
 /*
@@ -507,6 +508,9 @@ export default function MapWithFilters({ locale, mapTitle, mapSubtitle }: MapWit
 
   const matchesFilter = useCallback((cafe: CafeMapData, filter: MapFilterId) => {
     switch (filter) {
+      case 'open_now':
+        // Read against each cafe's own timezone, so a pin across a zone line is judged by its clock.
+        return isOpenNow(cafe.businessHours, cafe.timezone);
       case 'local':
         return !!coords && calculateDistance(coords.latitude, coords.longitude, cafe.latitude, cafe.longitude) <= LOCAL_RADIUS;
       case 'verified':

@@ -11,6 +11,7 @@ import { useLocation } from '@/hooks/useLocation';
 import { TrendingCafesSection, CafeCard } from '@/components/cafe';
 import { CAFE_GRID_ITEMS_PER_PAGE, GOOGLE_PLACE_PHOTO_PER_PAGE_LIMIT, TRENDING_CAFES_COUNT } from '@/lib/constants/cafe';
 import { RegisterCafeCTA } from '@/components/cafe/TrendingCafesSection';
+import { isOpenNow } from '@/lib/utils/businessHours';
 
 type FilterType = 'all' | 'closest' | 'most_popular';
 type GooglePhotoState = GoogleCafePhoto | null | 'loading';
@@ -43,6 +44,7 @@ export default function ExploreMapClient({ locale, initialCafes }: ExploreMapCli
   );
   const [cafes, setCafes] = useState<TrendingCafeResponse[]>(initialCafes);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [openNowOnly, setOpenNowOnly] = useState(false);
   const [hasMore, setHasMore] = useState(initialCafes.length === CAFE_GRID_ITEMS_PER_PAGE);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -175,6 +177,8 @@ export default function ExploreMapClient({ locale, initialCafes }: ExploreMapCli
             visit_count_14d: 0,
             trending_score: 0,
             main_image: cafe.main_image,
+            business_hours: cafe.business_hours,
+            timezone: cafe.timezone,
           }))
         );
         setIsSearching(false);
@@ -187,7 +191,16 @@ export default function ExploreMapClient({ locale, initialCafes }: ExploreMapCli
     };
   }, [term]);
 
-  const gridCafes = searchResults ?? cafes;
+  /*
+    'Open now' narrows what is already loaded rather than asking the server: the sorts
+    still decide the order, and this only hides the cafes whose door is shut right now.
+    A page can come up short of a full row as a result; load more fills it out.
+  */
+  // ponytail: client-side over loaded pages; move to the trending query if short pages annoy readers
+  const loadedCafes = searchResults ?? cafes;
+  const gridCafes = openNowOnly
+    ? loadedCafes.filter((cafe) => isOpenNow(cafe.business_hours, cafe.timezone))
+    : loadedCafes;
   const gridLoading = searchResults ? isSearching : isLoading;
 
   /*
@@ -250,6 +263,16 @@ export default function ExploreMapClient({ locale, initialCafes }: ExploreMapCli
                 className={filterClass('most_popular')}
               >
                 {t('filter_most_popular')}
+              </button>
+              {/* A condition on top of the sort, not a fourth sort, so it toggles on its own. */}
+              <button
+                onClick={() => setOpenNowOnly((on) => !on)}
+                aria-pressed={openNowOnly}
+                className={`landing-micro min-h-11 rounded-(--radius-pill) px-5 control-flat ${
+                  openNowOnly ? 'is-active' : ''
+                }`}
+              >
+                {t('filter_open_now')}
               </button>
             </div>
 

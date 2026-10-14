@@ -56,6 +56,8 @@ export interface TrendingCafeResponse {
   trending_rank?: number;
   image?: string;
   main_image?: string;
+  business_hours?: BusinessHoursData;
+  timezone?: string;
 }
 
 export interface GoogleCafePhoto {

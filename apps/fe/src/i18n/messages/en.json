@@ -450,6 +450,7 @@
     "filters": {
       "label": "Filter",
       "active": "Filter · {count}",
+      "open_now": "Open now",
       "sells_beans": "Sells beans",
       "roasts_on_site": "Roasts on site",
       "filter_coffee": "Filter coffee",
@@ -700,6 +701,7 @@
       "filter_all": "All",
       "filter_closest": "Closest",
       "filter_most_popular": "Most Popular",
+      "filter_open_now": "Open now",
       "trending_this_week": "Trending This Week",
       "showing_cafes": "Showing {count} cafes",
       "no_location": "Location needed for this filter"

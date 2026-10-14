@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import Optional, List
+from typing import Any, Dict, Optional, List
 from datetime import datetime
 from decimal import Decimal
 
@@ -153,6 +153,8 @@ class TrendingCafeResponse(BaseModel):
     trending_rank: Optional[int] = None
     image: Optional[str] = None
     main_image: Optional[str] = None
+    business_hours: Optional[Dict[str, Any]] = None
+    timezone: Optional[str] = None
 
 class CafeStatsResponse(BaseModel):
     """Response model for cafe statistics"""

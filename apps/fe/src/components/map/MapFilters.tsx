@@ -16,11 +16,13 @@ import { searchCafesByText } from '@/lib/api/cafes';
   Filters narrow together (local AND verified, not local OR verified): each one the
   reader turns on is a condition they are adding. None on means every pin.
 */
-export type MapFilterId = CafeTraitId | 'local' | 'verified' | 'trending';
+export type MapFilterId = CafeTraitId | 'open_now' | 'local' | 'verified' | 'trending';
 
-/* Coffee first: the three traits are why someone opens the map, and 'local' and
+/* 'Open now' leads because it is the question a reader standing on a street has first.
+   Then coffee: the three traits are why someone opens the map, and 'local' and
    'verified' say something about the entry rather than about the coffee. */
 export const MAP_FILTER_IDS: MapFilterId[] = [
+  'open_now',
   'sells_beans',
   'roasts_on_site',
   'filter_coffee',
