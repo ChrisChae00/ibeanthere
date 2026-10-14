@@ -37,9 +37,9 @@ export default function ImageGalleryModal({
   // The page behind a full-screen modal must not scroll under it.
   useEffect(() => {
     if (!isOpen) return;
-    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [isOpen]);
 

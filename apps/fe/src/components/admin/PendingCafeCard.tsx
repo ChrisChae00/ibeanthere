@@ -146,11 +146,11 @@ export default function PendingCafeCard({
     };
     document.addEventListener('keydown', onKey);
     // The page behind must not scroll under the dialog.
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const previousOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previousOverflow;
+      document.documentElement.style.overflow = previousOverflow;
     };
   }, [showEditModal]);
 
