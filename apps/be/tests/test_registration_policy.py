@@ -60,6 +60,7 @@ def _body(name):
         "address": "1 King Street West",
         "user_location": HERE,
         "serves_coffee": True,
+        "images": ["https://example.com/cafe.jpg"],
     }
 
 

@@ -729,6 +729,7 @@
     "register": {
       "serves_coffee_confirm": "This cafe serves coffee (required). ibeanthere only lists cafes that serve coffee.",
       "serves_coffee_required": "Please confirm that this cafe serves coffee.",
+      "photo_required": "Please add at least one photo of the cafe.",
       "title": "Register New Cafe",
       "location_select": "Select Location",
       "use_current_location": "Use Current Location",
@@ -804,7 +805,7 @@
       "remove_hours": "Remove Hours",
       "apply_to_all_days": "Apply to All Days",
       "clear_all_hours": "Clear All",
-      "photos_label": "Photos (Optional)",
+      "photos_label": "Photos",
       "photos_hint": "Add up to 5 photos. Click the star to set the main one.",
       "main_photo": "Main",
       "set_as_main": "Set as main photo",

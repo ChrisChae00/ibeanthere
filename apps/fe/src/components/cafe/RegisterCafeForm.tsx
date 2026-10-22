@@ -368,6 +368,12 @@ export default function RegisterCafeForm({
       setIsLoading(false);
       return;
     }
+
+    if (photos.length === 0) {
+      setError(t('photo_required'));
+      setIsLoading(false);
+      return;
+    }
     
     try {
       const requestData: CafeRegistrationRequest = {
@@ -385,8 +391,8 @@ export default function RegisterCafeForm({
           Object.entries(traits).filter(([, value]) => value !== undefined)
         ) as Record<string, boolean>,
         source_type: formData.source_url ? 'google_url' : locationMode === 'current' ? 'manual' : locationMode === 'map' ? 'map_click' : 'postcode',
-        images: photos.length > 0 ? photos : undefined,
-        main_image_index: photos.length > 0 ? mainImageIndex : undefined
+        images: photos,
+        main_image_index: mainImageIndex
       };
       
       const response = await registerCafe(requestData);
@@ -652,7 +658,7 @@ export default function RegisterCafeForm({
           </div>
         </details>
 
-        {/* Photos stay in the open: they are the one optional thing worth doing while standing there. */}
+        {/* Photos stay in the open: at least one is required, and it is easiest to take while standing there. */}
         <PhotoUploadWithMain
           photos={photos}
           onChange={setPhotos}

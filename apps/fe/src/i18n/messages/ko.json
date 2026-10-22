@@ -729,6 +729,7 @@
     "register": {
       "serves_coffee_confirm": "이 카페는 커피를 판매합니다 (필수). ibeanthere는 커피를 판매하는 카페만 다룹니다.",
       "serves_coffee_required": "커피를 판매하는 카페인지 확인해 주세요.",
+      "photo_required": "카페 사진을 1장 이상 올려 주세요.",
       "title": "새 카페 등록",
       "location_select": "위치 선택",
       "use_current_location": "현재 위치 사용",
@@ -804,7 +805,7 @@
       "remove_hours": "영업시간 삭제",
       "apply_to_all_days": "모든 요일에 적용",
       "clear_all_hours": "모두 지우기",
-      "photos_label": "사진 (선택)",
+      "photos_label": "사진",
       "photos_hint": "사진은 5장까지 올릴 수 있습니다. 별을 누르면 대표 사진이 됩니다.",
       "main_photo": "대표",
       "set_as_main": "대표 사진으로 설정",

@@ -99,7 +99,7 @@ class CafeRegistrationRequest(BaseModel):
     source_url: Optional[str] = None
     
     # Images
-    images: Optional[List[str]] = Field(None, max_length=5, description="Maximum 5 images (base64)")
+    images: List[str] = Field(..., min_length=1, max_length=5, description="1 to 5 photo URLs")
     main_image_index: Optional[int] = Field(None, ge=0, le=4, description="Index of main image")
 
 class CafeCreate(CafeBase):

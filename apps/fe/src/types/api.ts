@@ -90,7 +90,7 @@ export interface CafeRegistrationRequest {
   serves_coffee?: boolean;
   /* Written as approved observations: the registrant passed a 100m check. */
   traits?: Record<string, boolean>;
-  images?: string[];
+  images: string[];
   main_image_index?: number;
 }
 
