@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import { LoadingSpinner } from '@/shared/ui';
+import { Button, LoadingSpinner } from '@/shared/ui';
 const InteractiveMap = dynamic(() => import('./InteractiveMap'), {
   loading: () => <div className="h-full w-full flex items-center justify-center"><LoadingSpinner /></div>,
   ssr: false
@@ -138,7 +138,7 @@ interface MapWithFiltersProps {
 export default function MapWithFilters({ locale, mapTitle, mapSubtitle }: MapWithFiltersProps) {
   const t = useTranslations('map');
 
-  const { coords, getCurrentLocation, error: locationError } = useLocation();
+  const { coords, getCurrentLocation, error: locationError, isLoading: locationLoading } = useLocation();
   const { cafes: allCafes, isLoading, error, searchCafes, fetchTrendingFallback, isTrendingFallback, clearCache } = useMapData();
 
   const { showToast } = useToast();
@@ -613,10 +613,27 @@ export default function MapWithFilters({ locale, mapTitle, mapSubtitle }: MapWit
           />
         ) : !center ? (
           <div className="flex h-full items-center justify-center overflow-hidden rounded-(--radius-card) border border-edge-rule bg-surface-raised">
-            <div className="text-center">
-              <LoadingSpinner size="lg" />
-              <p className="text-ink-secondary mt-4 text-sm">{t('loading_location')}</p>
-            </div>
+            {/* The browser can report "granted" while the phone itself blocks location,
+                so a failed fix needs a way out instead of an endless spinner. */}
+            {locationError && !locationLoading ? (
+              <div className="p-8 text-center">
+                <p className="text-ink-secondary text-sm">{t('location_error')}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => getCurrentLocation(0).catch(() => {})}
+                >
+                  {t('retry')}
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <LoadingSpinner size="lg" />
+                <p className="text-ink-secondary mt-4 text-sm">{t('loading_location')}</p>
+              </div>
+            )}
           </div>
         ) : (
           <div ref={mapFrameRef} className="relative h-full overflow-hidden rounded-(--radius-card) border border-edge-rule">
