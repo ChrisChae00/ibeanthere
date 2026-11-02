@@ -1,0 +1,196 @@
+.pourOver {
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 16px;
+  background: transparent;
+}
+
+.pourOver svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.orbit {
+  animation: pourOrbit 2.4s linear infinite;
+}
+
+.kettle {
+  transform-origin: 164px 80px;
+  animation: kettlePour 7.2s ease-in-out infinite;
+}
+
+.water {
+  opacity: 0;
+  stroke-dasharray: 5 8;
+  animation:
+    waterFlow 0.6s linear infinite,
+    waterVisible 7.2s ease-in-out infinite;
+}
+
+.bloom {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: coffeeBloom 7.2s ease-in-out infinite;
+}
+
+.coffee {
+  animation: coffeeFill 7.2s ease-in-out infinite;
+}
+
+.drips {
+  animation: dripsVisible 7.2s ease-in-out infinite;
+}
+
+.drop {
+  opacity: 0;
+  animation: coffeeDrip 1.2s linear infinite;
+}
+
+.dropSecond {
+  opacity: 0;
+  animation: coffeeDrip 1.2s linear -0.6s infinite;
+}
+
+@keyframes pourOrbit {
+  0%,
+  100% {
+    transform: translate(12px, 0);
+  }
+  12.5% {
+    transform: translate(8.5px, 4.2px);
+  }
+  25% {
+    transform: translate(0, 6px);
+  }
+  37.5% {
+    transform: translate(-8.5px, 4.2px);
+  }
+  50% {
+    transform: translate(-12px, 0);
+  }
+  62.5% {
+    transform: translate(-8.5px, -4.2px);
+  }
+  75% {
+    transform: translate(0, -6px);
+  }
+  87.5% {
+    transform: translate(8.5px, -4.2px);
+  }
+}
+
+@keyframes kettlePour {
+  0%,
+  10%,
+  92%,
+  100% {
+    transform: rotate(12deg);
+  }
+  22%,
+  76% {
+    transform: rotate(-8deg);
+  }
+}
+
+@keyframes waterFlow {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+
+@keyframes waterVisible {
+  0%,
+  16%,
+  85%,
+  100% {
+    opacity: 0;
+  }
+  24%,
+  76% {
+    opacity: 1;
+  }
+}
+
+@keyframes coffeeBloom {
+  0%,
+  12%,
+  100% {
+    transform: scale(0.65);
+  }
+  38%,
+  76% {
+    transform: scale(1.35);
+  }
+}
+
+@keyframes coffeeFill {
+  0%,
+  15% {
+    transform: translateY(50px);
+    opacity: 1;
+  }
+  82%,
+  92% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+@keyframes dripsVisible {
+  0%,
+  22%,
+  94%,
+  100% {
+    opacity: 0;
+  }
+  32%,
+  84% {
+    opacity: 1;
+  }
+}
+
+@keyframes coffeeDrip {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(48px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(52px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pourOver svg * {
+    animation: none !important;
+  }
+
+  .water {
+    opacity: 1;
+  }
+
+  .drips {
+    opacity: 1;
+  }
+
+  .drop {
+    opacity: 1;
+  }
+
+  .dropSecond {
+    opacity: 0;
+  }
+}

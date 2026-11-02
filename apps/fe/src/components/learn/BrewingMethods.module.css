@@ -1,0 +1,66 @@
+.animation {
+  width: min(100%, 320px);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cardContent {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    grid-template-rows 300ms ease,
+    opacity 200ms ease;
+}
+
+.cardContentOpen {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.cardContentInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.fadeIn {
+  animation: fadeIn 300ms ease-out both;
+}
+
+.fadeOut {
+  animation: fadeOut 220ms ease-in both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardContent {
+    transition: none;
+  }
+
+  .fadeIn,
+  .fadeOut {
+    animation-duration: 1ms;
+  }
+}
