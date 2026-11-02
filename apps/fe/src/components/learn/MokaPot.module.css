@@ -1,0 +1,295 @@
+.mokaPot {
+  display: inline-block;
+  width: min(100%, 320px);
+  aspect-ratio: 9 / 11;
+}
+
+.mokaPot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.shadow {
+  fill: #d3c8b6;
+  opacity: 0.45;
+}
+
+.upper,
+.lower {
+  fill: #dce1d5;
+  fill-opacity: 0.55;
+  stroke: #7b8570;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.upperFacet,
+.lowerFacet {
+  fill: none;
+  stroke: #a0aa92;
+  stroke-width: 1.5;
+  opacity: 0.65;
+}
+
+.handle {
+  fill: none;
+  stroke: #343c31;
+  stroke-width: 13;
+  stroke-linejoin: round;
+}
+
+.lid {
+  fill: #b9c2ac;
+  stroke: #7b8570;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.lidRim,
+.waist {
+  fill: #77816b;
+}
+
+.knob {
+  fill: #343c31;
+}
+
+.collected {
+  fill: #97633b;
+  opacity: 0.9;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: mokaFill 9s linear infinite;
+}
+
+.water {
+  fill: #b7c9bb;
+  opacity: 0.85;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: mokaDrain 9s linear infinite;
+}
+
+.chimney {
+  fill: #c5cdbb;
+  stroke: #78836d;
+  stroke-width: 1.5;
+}
+
+.chimneyHighlight {
+  fill: none;
+  stroke: #f3f2e8;
+  stroke-width: 2;
+  opacity: 0.7;
+}
+
+.funnel {
+  fill: #b4bfaa;
+  stroke: #7b8570;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.stem {
+  fill: none;
+  stroke: #dce3d5;
+  stroke-width: 7;
+}
+
+.basket {
+  fill: #849077;
+  stroke: #68745c;
+  stroke-width: 1;
+}
+
+.grounds {
+  fill: #5d402c;
+}
+
+.grain {
+  fill: none;
+  stroke: #a77a4f;
+  stroke-width: 2;
+  stroke-dasharray: 2 4;
+}
+
+.extraction {
+  animation: mokaExtract 9s linear infinite;
+}
+
+.flow,
+.spoutFlow {
+  fill: none;
+  stroke: #98653c;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 5.5;
+}
+
+.flow {
+  animation: mokaUp 0.36s linear infinite;
+}
+
+.spoutFlow {
+  animation: mokaDown 0.36s linear infinite;
+}
+
+.filterLine {
+  fill: none;
+  stroke: #d0d5c5;
+  stroke-width: 2;
+  stroke-dasharray: 2 3;
+}
+
+.valve {
+  fill: #9ca58f;
+  stroke: #68745c;
+  stroke-width: 1.5;
+}
+
+.valveCore {
+  fill: #48523f;
+}
+
+.base {
+  fill: none;
+  stroke: #68745c;
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+.steam {
+  fill: none;
+  stroke: #b4a692;
+  stroke-width: 2;
+  stroke-linecap: round;
+  animation: mokaSteam 9s linear infinite;
+}
+
+@keyframes mokaFill {
+  0%,
+  18% {
+    transform: scaleY(0.01);
+    opacity: 0;
+  }
+  24% {
+    transform: scaleY(0.08);
+    opacity: 0.9;
+  }
+  76%,
+  88% {
+    transform: scaleY(1);
+    opacity: 0.9;
+  }
+  94% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+  95%,
+  100% {
+    transform: scaleY(0.01);
+    opacity: 0;
+  }
+}
+
+@keyframes mokaDrain {
+  0%,
+  18% {
+    transform: scaleY(1);
+    opacity: 0.85;
+  }
+  76%,
+  88% {
+    transform: scaleY(0.12);
+    opacity: 0.85;
+  }
+  94% {
+    transform: scaleY(0.12);
+    opacity: 0;
+  }
+  95% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0.85;
+  }
+}
+
+@keyframes mokaExtract {
+  0%,
+  16% {
+    opacity: 0;
+  }
+  22%,
+  71% {
+    opacity: 1;
+  }
+  79%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes mokaUp {
+  to {
+    stroke-dashoffset: -5.6;
+  }
+}
+
+@keyframes mokaDown {
+  to {
+    stroke-dashoffset: -5.6;
+  }
+}
+
+@keyframes mokaSteam {
+  0%,
+  30% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  45% {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+  65% {
+    opacity: 0.25;
+    transform: translateY(-4px);
+  }
+  85% {
+    opacity: 0.4;
+    transform: translateY(-8px);
+  }
+  94%,
+  100% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collected {
+    animation: none;
+    transform: scaleY(1);
+    opacity: 0.9;
+  }
+
+  .water {
+    animation: none;
+    transform: scaleY(0.12);
+  }
+
+  .extraction,
+  .steam {
+    animation: none;
+    opacity: 0;
+  }
+
+  .flow,
+  .spoutFlow {
+    animation: none;
+  }
+}

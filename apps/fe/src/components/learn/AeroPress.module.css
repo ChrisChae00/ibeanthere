@@ -1,0 +1,287 @@
+.aeroPress {
+  display: inline-block;
+  width: min(100%, 320px);
+  aspect-ratio: 9 / 11;
+}
+
+.aeroPress svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.shadow {
+  fill: #d3c8b6;
+  opacity: 0.45;
+}
+
+.cup {
+  fill: #eee6d8;
+  stroke: #958b78;
+  stroke-width: 2;
+}
+
+.cupHandle {
+  fill: none;
+  stroke: #958b78;
+  stroke-width: 9;
+}
+
+.cupHighlight {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4;
+  opacity: 0.55;
+  stroke-linecap: round;
+}
+
+.chamber {
+  fill: #aab5a5;
+  fill-opacity: 0.23;
+  stroke: #737e6b;
+  stroke-width: 2;
+}
+
+.brew {
+  fill: #8ebfc9;
+  opacity: 0.6;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: apBrew 8s infinite;
+}
+
+.specks {
+  fill: #4b3225;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: apSpecks 8s infinite;
+}
+
+.shaft {
+  fill: #d8dfd3;
+  stroke: #737e6b;
+  stroke-width: 2;
+}
+
+.shaftHighlight {
+  fill: none;
+  stroke: #fff;
+  opacity: 0.5;
+  stroke-width: 4;
+}
+
+.top,
+.seal,
+.filter,
+.support {
+  fill: #343c31;
+}
+
+.collar {
+  fill: #626d59;
+}
+
+.piston {
+  animation: apPress 8s infinite;
+}
+
+.edge {
+  fill: none;
+  stroke: #737e6b;
+  stroke-width: 2;
+}
+
+.chamberHighlight {
+  fill: none;
+  stroke: #fff;
+  opacity: 0.38;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.measure {
+  fill: none;
+  stroke: #ebe8d9;
+  stroke-width: 2;
+  opacity: 0.7;
+}
+
+.filterLines {
+  stroke: #8a9380;
+  stroke-width: 2;
+}
+
+.stream {
+  fill: none;
+  stroke: #98653c;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 5.5;
+  animation: apFlow 0.32s linear infinite;
+}
+
+.extraction {
+  animation: apExtraction 8s infinite;
+}
+
+.ripple {
+  fill: none;
+  stroke: #c2915a;
+  stroke-width: 1.5;
+}
+
+.cupCoffee {
+  fill: #97633b;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: apFill 8s infinite;
+}
+
+@keyframes apPress {
+  0%,
+  12% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  72%,
+  88% {
+    transform: translateY(119px);
+    opacity: 1;
+  }
+  94% {
+    transform: translateY(119px);
+    opacity: 0;
+  }
+  95% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes apBrew {
+  0%,
+  12% {
+    transform: scaleY(1);
+    opacity: 0.6;
+  }
+  72%,
+  88% {
+    transform: scaleY(0.07);
+    opacity: 0.6;
+  }
+  94% {
+    transform: scaleY(0.07);
+    opacity: 0;
+  }
+  95% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0.6;
+  }
+}
+
+@keyframes apSpecks {
+  0%,
+  12% {
+    transform: scaleY(1);
+    opacity: 0.55;
+  }
+  72%,
+  88% {
+    transform: scaleY(0.07);
+    opacity: 0.75;
+  }
+  94% {
+    transform: scaleY(0.07);
+    opacity: 0;
+  }
+  95% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0.55;
+  }
+}
+
+@keyframes apFill {
+  0%,
+  12% {
+    transform: scaleY(0.02);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  72%,
+  88% {
+    transform: scaleY(1.8);
+    opacity: 1;
+  }
+  94% {
+    transform: scaleY(1.8);
+    opacity: 0;
+  }
+  95%,
+  100% {
+    transform: scaleY(0.02);
+    opacity: 0;
+  }
+}
+
+@keyframes apExtraction {
+  0%,
+  13% {
+    opacity: 0;
+  }
+  19%,
+  66% {
+    opacity: 1;
+  }
+  74%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes apFlow {
+  to {
+    stroke-dashoffset: -5.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .piston {
+    animation: none;
+    transform: translateY(119px);
+  }
+
+  .brew,
+  .specks {
+    animation: none;
+    transform: scaleY(0.07);
+  }
+
+  .cupCoffee {
+    animation: none;
+    transform: scaleY(1.8);
+    opacity: 1;
+  }
+
+  .extraction {
+    animation: none;
+    opacity: 0;
+  }
+
+  .stream {
+    animation: none;
+  }
+}
