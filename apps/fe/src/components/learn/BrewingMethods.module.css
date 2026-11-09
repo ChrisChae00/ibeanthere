@@ -1,3 +1,19 @@
+.hint {
+  opacity: 1;
+  transition: opacity 300ms ease;
+}
+
+.hintHidden {
+  opacity: 0;
+  transition: none;
+}
+
+@starting-style {
+  .hint {
+    opacity: 0;
+  }
+}
+
 .animation {
   width: min(100%, 320px);
   opacity: 1;
@@ -55,6 +71,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hint {
+    transition: none;
+  }
+
   .cardContent {
     transition: none;
   }

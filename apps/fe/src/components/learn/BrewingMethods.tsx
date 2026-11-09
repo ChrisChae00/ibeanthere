@@ -97,8 +97,18 @@ export default function BrewingMethods({
 
       <div
         aria-live="polite"
-        className="flex items-start justify-center lg:min-h-80"
+        className="relative flex items-start justify-center lg:min-h-80"
       >
+        <div
+          aria-hidden={animationMounted}
+          className={`${styles.hint} ${animationMounted ? styles.hintHidden : ''} pointer-events-none absolute inset-0 hidden items-center justify-center lg:flex`}
+        >
+          <p className="px-6 text-center leading-relaxed text-ink-secondary">
+            {locale === 'ko'
+              ? '각 추출법들을 눌러 애니메이션을 확인하세요.'
+              : 'Click each brewing method to see its animation.'}
+          </p>
+        </div>
         {animationMounted ? (
           <div
             className={`${styles.animation} ${animationPhase === 'entering' ? styles.fadeIn : ''} ${animationPhase === 'exiting' ? styles.fadeOut : ''}`}
