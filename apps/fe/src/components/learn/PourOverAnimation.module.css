@@ -1,0 +1,77 @@
+﻿.pour-over{--ink:#384334;--cycle:12s;position:relative;display:grid;place-items:center;width:100%;min-height:520px;overflow:hidden;background:transparent;isolation:isolate}
+.pour-over::after{content:'';position:absolute;inset:0;z-index:10;pointer-events:none;opacity:.18;background-image:repeating-radial-gradient(circle at 17% 32%,#796a4933 0 .6px,transparent .8px 2.4px),repeating-radial-gradient(circle at 73% 61%,#fff8e966 0 .5px,transparent .7px 3.1px);background-size:7px 9px,11px 13px}
+.pour-over .scene{width:320px;height:450px;position:relative}
+.pour-over .scene *,.pour-over .scene *::before,.pour-over .scene *::after{box-sizing:border-box;position:absolute}
+.pour-over .shadow{left:26px;top:408px;width:270px;height:16px;border-radius:50%;background:#98896a;opacity:.12;filter:blur(1px)}
+.pour-over .pour-motion{inset:0;z-index:5;pointer-events:none;animation:po-orbit 2.6s linear infinite}
+.pour-over .kettle{width:122px;height:109px;left:162px;top:28px;transform-origin:-33px 46px;animation:po-kettle var(--cycle) ease-in-out infinite;z-index:5}
+.pour-over .body{inset:28px 9px 0 13px;background:#8d9b82;border:2px solid #71816a;border-radius:39% 40% 24% 24%}
+.pour-over .handle{width:49px;height:64px;right:-12px;top:32px;border:9px solid var(--ink);border-radius:15px 22px 23px 10px}
+.pour-over .spout{width:61px;height:49px;left:-37px;top:46px;border-left:8px solid #71816a;border-bottom:9px solid #71816a;border-radius:0 0 0 34px}
+.pour-over .lid{left:23px;top:24px;width:78px;height:7px;border-radius:50% 50% 2px 2px;background:var(--ink)}
+.pour-over .knob{left:52px;top:14px;width:21px;height:12px;background:var(--ink);border-radius:4px 4px 2px 2px}
+.pour-over .shine{width:7px;height:47px;top:43px;left:27px;border-left:3px solid #d5ddc4;border-radius:50%;opacity:.65}
+.pour-over .water-anchor{left:-33px;top:46px;width:0;height:0;transform-origin:0 0;animation:po-counter var(--cycle) ease-in-out infinite}
+.pour-over .water{left:-2px;top:0;width:4px;height:132px;background:#d8e4d5;border-right:1px solid #a8bbae;border-radius:50%;transform-origin:top;animation:po-water var(--cycle) linear infinite;z-index:4}
+.pour-over .dripper{left:70px;top:200px;width:160px;height:91px;clip-path:polygon(0 0,100% 0,64% 100%,37% 100%);background:#a4af96;z-index:3}
+.pour-over .paper{inset:0 8px 5px;background:#ebe8d8;clip-path:polygon(0 0,100% 0,62% 100%,39% 100%)}
+.pour-over .grounds{left:17px;top:0;width:128px;height:19px;background:#795739;border-radius:50%;animation:po-bloom var(--cycle) ease-in-out infinite}
+.pour-over .grounds::after{content:'';inset:3px 14px;background:radial-gradient(circle,#b28b55 1px,transparent 1.5px) 0 0/9px 6px;border-radius:50%}
+.pour-over .ribs{inset:0}
+.pour-over .ribs i{top:8px;height:84px;width:1px;background:#87967c;opacity:.6;transform-origin:top}
+.pour-over .rim{left:66px;top:197px;width:168px;height:7px;border-radius:3px;background:#7e8c72;z-index:5}
+.pour-over .base{left:110px;top:286px;width:80px;height:8px;border-radius:2px;background:#6e7d64;z-index:5}
+.pour-over .dripper-handle{left:214px;top:210px;width:28px;height:40px;border:6px solid #7e8c72;border-left:0;border-radius:0 13px 17px 0;z-index:2}
+.pour-over .ripples{left:105px;top:204px;width:40px;height:8px;z-index:6;animation:po-rings var(--cycle) linear infinite,po-orbit 2.6s linear infinite}
+.pour-over .ripples i{inset:0;border:1px solid #c8b391;border-radius:50%;animation:po-ripple 1.8s ease-out infinite}
+.pour-over .ripples i:nth-child(2){animation-delay:-.6s}.pour-over .ripples i:nth-child(3){animation-delay:-1.2s}
+.pour-over .server{left:78px;top:296px;width:144px;height:112px;border:2px solid #8c9b86;border-radius:12px 12px 38px 38px;background:#d4dfd033;overflow:hidden;z-index:2}
+.pour-over .server-handle{left:211px;top:310px;width:44px;height:63px;border:8px solid #7d8e79;border-left-width:5px;border-radius:8px 23px 26px 9px}
+.pour-over .lip{left:73px;top:295px;width:152px;height:5px;border-radius:3px;background:#a5b19b;z-index:4}
+.pour-over .foot{left:101px;top:404px;width:98px;height:4px;background:#87977e;border-radius:50%;z-index:3}
+.pour-over .coffee{left:0;right:0;bottom:0;height:74px;background:#986b45;opacity:.87;transform-origin:bottom;animation:po-fill var(--cycle) ease-in-out infinite}
+.pour-over .surface{left:-5%;top:-5px;width:110%;height:11px;background:#b58b5d;border-radius:50%;animation:po-sway 2.4s ease-in-out infinite alternate}
+.pour-over .reflection{left:9px;top:12px;width:12px;height:77px;border-left:4px solid #faf5e2;border-bottom:3px solid #faf5e2;border-radius:2px 0 0 15px;opacity:.8;z-index:3}
+.pour-over .marks{right:12px;top:35px;width:11px;height:45px;z-index:3}
+.pour-over .marks i{right:0;width:9px;height:2px;background:#ede6cd;opacity:.7}.pour-over .marks i:nth-child(2){top:17px;width:6px}.pour-over .marks i:nth-child(3){top:34px}
+.pour-over .drops{left:146px;top:292px;width:7px;height:66px;z-index:4;animation:po-drops var(--cycle) linear infinite}
+.pour-over .drops i{width:4px;height:7px;background:#8b623e;border-radius:50%;animation:po-drip 1.2s ease-in infinite}.pour-over .drops i:nth-child(2){animation-delay:-.4s}.pour-over .drops i:nth-child(3){animation-delay:-.8s}
+.pour-over .steam{left:109px;top:263px;width:78px;height:40px;z-index:1}.pour-over .steam i{left:8px;bottom:0;width:13px;height:30px;border-left:2px solid #fff8e6;border-radius:50%;opacity:0;animation:po-steam 3.6s ease-in-out infinite}.pour-over .steam i:nth-child(2){left:32px;animation-delay:-1.2s}.pour-over .steam i:nth-child(3){left:56px;animation-delay:-2.4s}
+@keyframes po-kettle{0%,5%,92%,100%{transform:rotate(0)}18%,68%{transform:rotate(-18deg)}79%{transform:rotate(-4deg)}}
+@keyframes po-counter{0%,5%,92%,100%{transform:rotate(0)}18%,68%{transform:rotate(18deg)}79%{transform:rotate(4deg)}}
+@keyframes po-water{0%,12%,77%,100%{opacity:0;transform:scaleY(0)}17%,68%{opacity:.85;transform:scaleY(1)}74%{opacity:0;transform:scaleY(1)}}
+@keyframes po-bloom{0%,12%,100%{transform:scaleY(.7)}27%,69%{transform:scaleY(1.2)}88%{transform:scaleY(.8)}}
+@keyframes po-ripple{from{transform:scale(.15);opacity:.7}to{transform:scale(1.2);opacity:0}}
+@keyframes po-rings{0%,14%,76%,100%{opacity:0}20%,68%{opacity:1}}
+@keyframes po-drops{0%,22%,94%,100%{opacity:0}27%,86%{opacity:1}}
+@keyframes po-drip{from{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1}to{transform:translateY(63px) scale(.8,1.2);opacity:0}}
+@keyframes po-fill{0%,24%{transform:scaleY(.13)}82%,91%{transform:scaleY(1)}97%,100%{transform:scaleY(.13)}}
+@keyframes po-sway{from{transform:translateX(-2px) rotate(-1deg)}to{transform:translateX(2px) rotate(1deg)}}
+@keyframes po-steam{from{transform:translate(0,8px) scale(.7);opacity:0}40%{opacity:.45}to{transform:translate(7px,-22px) scale(1.2);opacity:0}}
+@media(max-width:360px){.pour-over .scene{transform:scale(.85)}}
+@media(prefers-reduced-motion:reduce){.pour-over .scene *,.pour-over .scene *::before,.pour-over .scene *::after{animation:none!important}.pour-over .pour-motion{inset:0;z-index:5;pointer-events:none;animation:po-orbit 2.6s linear infinite}
+.pour-over .kettle{transform:rotate(-18deg)}.pour-over .water,.pour-over .drops,.pour-over .ripples,.pour-over .steam{display:none}.pour-over .coffee{transform:scaleY(.8)}}
+
+
+/* A circle on the horizontal coffee bed appears as a shallow ellipse in this view.
+   The kettle, attached stream and landing ripples follow the same orbit. */
+@keyframes po-orbit{
+  0%,100%{transform:translate(17px,0)}
+  6.25%{transform:translate(15.7px,2.3px)}
+  12.5%{transform:translate(12px,4.2px)}
+  18.75%{transform:translate(6.5px,5.5px)}
+  25%{transform:translate(0,6px)}
+  31.25%{transform:translate(-6.5px,5.5px)}
+  37.5%{transform:translate(-12px,4.2px)}
+  43.75%{transform:translate(-15.7px,2.3px)}
+  50%{transform:translate(-17px,0)}
+  56.25%{transform:translate(-15.7px,-2.3px)}
+  62.5%{transform:translate(-12px,-4.2px)}
+  68.75%{transform:translate(-6.5px,-5.5px)}
+  75%{transform:translate(0,-6px)}
+  81.25%{transform:translate(6.5px,-5.5px)}
+  87.5%{transform:translate(12px,-4.2px)}
+  93.75%{transform:translate(15.7px,-2.3px)}
+}
+
+
