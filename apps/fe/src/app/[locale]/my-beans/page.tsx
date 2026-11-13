@@ -420,14 +420,15 @@ function LevelInfoModal({ isOpen, onClose, currentLevel, t, tDropBean }: LevelIn
               className="flex items-center gap-3 border-b border-edge-rule py-3 last:border-0"
             >
               <GrowthIcon level={level} size={36} />
-              <div className="min-w-0 flex-1 text-ink-primary">
+              {/* The pill sits under the name: beside it, it squeezed the name into its own overflow on phones. */}
+              <div className="flex min-w-0 flex-1 flex-col items-start gap-1 text-ink-primary">
                 {tDropBean(`levels.${level}`)}
+                {level === currentLevel && (
+                  <span className="landing-micro rounded-(--radius-pill) bg-brand px-2.5 py-1 text-ink-on-brand">
+                    {t('level_info.current_highest')}
+                  </span>
+                )}
               </div>
-              {level === currentLevel && (
-                <span className="landing-micro rounded-(--radius-pill) bg-brand px-2.5 py-1 text-ink-on-brand">
-                  {t('level_info.current_highest')}
-                </span>
-              )}
               <div className="landing-micro shrink-0 text-ink-secondary">
                 {t('level_info.drops_required', { count: threshold })}
               </div>
