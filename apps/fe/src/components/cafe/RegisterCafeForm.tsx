@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { registerCafe, searchLocationByPostcode, reverseGeocodeLocation, lookupGoogleMapsUrl } from '@/lib/api/cafes';
+import { registerCafe, searchLocationByPostcode, reverseGeocodeLocation, lookupGoogleMapsUrl, autocompleteGooglePlaces, getGooglePlaceDetails } from '@/lib/api/cafes';
 import { isAuthError } from '@/lib/api/client';
 import { useLocation } from '@/hooks/useLocation';
 import { validateInitialDistance } from '@/lib/utils/checkIn';
-import { CafeRegistrationRequest } from '@/types/api';
+import { CafeRegistrationRequest, GooglePlaceSuggestion } from '@/types/api';
 import { BusinessHours } from '@/types/map';
 import { ErrorAlert, Button, Input } from '@/components/ui';
 import { useToast } from '@/contexts/ToastContext';
@@ -25,6 +25,9 @@ interface RegisterCafeFormProps {
 type LocationMode = 'current' | 'map' | 'postcode';
 
 const MAX_PHOTOS = 5;
+
+/* A pasted link takes the URL lookup; anything else is a name to search. */
+const isMapsLink = (value: string) => /^https?:\/\//i.test(value) || value.includes('goo.gl');
 
 export default function RegisterCafeForm({
   initialLocation,
@@ -74,8 +77,47 @@ export default function RegisterCafeForm({
   /* Google filled the identity fields; they are its answer until the user drops it. */
   const [lookupApplied, setLookupApplied] = useState(false);
   const lookupCacheRef = useRef<Record<string, import('@/types/api').GooglePlacesLookupResult>>({});
+  /* Set only by picking a suggestion; the server re-fetches it, so it is a claim, not a fact. */
+  const [placeId, setPlaceId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<GooglePlaceSuggestion[]>([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  /* One search session per pick: Google bills the keystrokes plus the Details
+     call that ends them as a single Details call. */
+  const sessionTokenRef = useRef('');
   
   const userLocation = providedUserLocation || (coords ? { lat: coords.latitude, lng: coords.longitude } : null);
+  const nearLat = (cafeLocation || userLocation)?.lat;
+  const nearLng = (cafeLocation || userLocation)?.lng;
+
+  useEffect(() => {
+    const query = formData.source_url.trim();
+    if (lookupApplied || isMapsLink(query) || query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    let stale = false;
+    const timer = setTimeout(async () => {
+      if (!sessionTokenRef.current) sessionTokenRef.current = crypto.randomUUID();
+      try {
+        const found = await autocompleteGooglePlaces(
+          query,
+          sessionTokenRef.current,
+          nearLat != null && nearLng != null ? { lat: nearLat, lng: nearLng } : undefined
+        );
+        if (!stale) {
+          setSuggestions(found);
+          setActiveSuggestion(-1);
+        }
+      } catch (err) {
+        if (!stale && isAuthError(err)) setError(tErrors('not_authenticated'));
+      }
+    }, 300);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
+  }, [formData.source_url, lookupApplied, nearLat, nearLng, tErrors]);
   
   // Country options
   const countries = [
@@ -266,15 +308,7 @@ export default function RegisterCafeForm({
         applyLookupData(result);
         showToast(t('google_maps_auto_fill_success'), 'success');
       } else {
-        if (result.error === 'NOT_CONFIGURED') {
-          setError(t('google_maps_auto_fill_not_configured'));
-        } else if (result.error === 'PLACE_NOT_FOUND') {
-          setError(t('google_maps_auto_fill_not_found'));
-        } else if (result.error === 'INVALID_URL') {
-          setError(t('google_maps_auto_fill_invalid_url'));
-        } else {
-          setError(t('google_maps_auto_fill_failed'));
-        }
+        setError(lookupErrorMessage(result.error));
       }
     } catch (error) {
       console.error('Google Places lookup error:', error);
@@ -285,6 +319,54 @@ export default function RegisterCafeForm({
       }
     } finally {
       setIsLookingUp(false);
+    }
+  };
+
+  const lookupErrorMessage = (code?: string) => {
+    if (code === 'NOT_CONFIGURED') return t('google_maps_auto_fill_not_configured');
+    if (code === 'PLACE_NOT_FOUND') return t('google_maps_auto_fill_not_found');
+    if (code === 'INVALID_URL') return t('google_maps_auto_fill_invalid_url');
+    return t('google_maps_auto_fill_failed');
+  };
+
+  const handleSelectSuggestion = async (suggestion: GooglePlaceSuggestion) => {
+    if (isLookingUp) return;
+    setSuggestionsOpen(false);
+    setIsLookingUp(true);
+    setError('');
+    try {
+      const result = await getGooglePlaceDetails(suggestion.place_id, sessionTokenRef.current);
+      if (result.success && result.data) {
+        applyLookupData(result);
+        setPlaceId(suggestion.place_id);
+        /* The field shows what was picked, not the Maps link applyLookupData put there. */
+        setFormData(prev => ({ ...prev, source_url: suggestion.name }));
+        showToast(t('google_maps_auto_fill_success'), 'success');
+      } else {
+        setError(lookupErrorMessage(result.error));
+      }
+    } catch (err) {
+      setError(isAuthError(err) ? tErrors('not_authenticated') : t('google_maps_auto_fill_failed'));
+    } finally {
+      /* The Details call closed this session, whatever it returned. */
+      sessionTokenRef.current = '';
+      setSuggestions([]);
+      setIsLookingUp(false);
+    }
+  };
+
+  const handleQuickFillKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!suggestionsOpen || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const step = e.key === 'ArrowDown' ? 1 : -1;
+      setActiveSuggestion(i => (i + step + suggestions.length) % suggestions.length);
+    } else if (e.key === 'Enter' && activeSuggestion >= 0) {
+      /* Enter here picks a cafe; it must not submit the half-filled form. */
+      e.preventDefault();
+      handleSelectSuggestion(suggestions[activeSuggestion]);
+    } else if (e.key === 'Escape') {
+      setSuggestionsOpen(false);
     }
   };
 
@@ -323,6 +405,7 @@ export default function RegisterCafeForm({
   */
   const handleDiscardLookup = () => {
     setLookupApplied(false);
+    setPlaceId(null);
     setFormData({ name: '', address: '', phone: '', website: '', postcode: '', source_url: '' });
     setBusinessHours(undefined);
     setAddressFetched(false);
@@ -383,14 +466,16 @@ export default function RegisterCafeForm({
         address: formData.address || undefined,
         phone: formData.phone || undefined,
         website: formData.website || undefined,
-        source_url: formData.source_url || undefined,
+        /* A picked place is sent by id; a typed name that was never picked is not a source. */
+        source_url: !placeId && isMapsLink(formData.source_url) ? formData.source_url : undefined,
+        google_place_id: placeId || undefined,
         business_hours: businessHours,
         user_location: userLocation,
         serves_coffee: servesCoffee,
         traits: Object.fromEntries(
           Object.entries(traits).filter(([, value]) => value !== undefined)
         ) as Record<string, boolean>,
-        source_type: formData.source_url ? 'google_url' : locationMode === 'current' ? 'manual' : locationMode === 'map' ? 'map_click' : 'postcode',
+        source_type: placeId ? 'google_place' : isMapsLink(formData.source_url) ? 'google_url' : locationMode === 'current' ? 'manual' : locationMode === 'map' ? 'map_click' : 'postcode',
         images: photos,
         main_image_index: mainImageIndex
       };
@@ -506,15 +591,61 @@ export default function RegisterCafeForm({
             {t('quick_fill_label')}
           </label>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Input
-              id="source_url"
-              type="url"
-              name="source_url"
-              value={formData.source_url}
-              onChange={handleInputChange}
-              placeholder={t('google_maps_url_placeholder')}
-              readOnly={lookupApplied}
-            />
+            <div className="relative w-full">
+              <Input
+                id="source_url"
+                type="text"
+                name="source_url"
+                value={formData.source_url}
+                onChange={e => {
+                  handleInputChange(e);
+                  setSuggestionsOpen(true);
+                }}
+                onKeyDown={handleQuickFillKeyDown}
+                onFocus={() => setSuggestionsOpen(true)}
+                onBlur={() => setSuggestionsOpen(false)}
+                placeholder={t('google_maps_url_placeholder')}
+                readOnly={lookupApplied}
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={suggestionsOpen && suggestions.length > 0}
+                aria-controls="quick-fill-suggestions"
+                aria-autocomplete="list"
+                aria-activedescendant={activeSuggestion >= 0 ? `quick-fill-option-${activeSuggestion}` : undefined}
+              />
+              {suggestionsOpen && suggestions.length > 0 && (
+                <ul
+                  id="quick-fill-suggestions"
+                  role="listbox"
+                  className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-2xl border border-border bg-cardBackground shadow-lg"
+                >
+                  {suggestions.map((suggestion, index) => (
+                    <li
+                      key={suggestion.place_id}
+                      id={`quick-fill-option-${index}`}
+                      role="option"
+                      aria-selected={index === activeSuggestion}
+                      /* mousedown, not click: the input's blur would close the list first. */
+                      onMouseDown={e => {
+                        e.preventDefault();
+                        handleSelectSuggestion(suggestion);
+                      }}
+                      onMouseEnter={() => setActiveSuggestion(index)}
+                      className={`cursor-pointer px-4 py-3 ${index === activeSuggestion ? 'bg-primary/10' : ''}`}
+                    >
+                      <p className="text-sm font-medium text-cardText">{suggestion.name}</p>
+                      {suggestion.secondary && (
+                        <p className="text-xs text-cardTextSecondary">{suggestion.secondary}</p>
+                      )}
+                    </li>
+                  ))}
+                  {/* Google's terms require this mark on results shown without a Google map. */}
+                  <li role="presentation" className="px-4 py-2 text-right text-xs text-cardTextSecondary">
+                    {t('quick_fill_powered_by')}
+                  </li>
+                </ul>
+              )}
+            </div>
             {lookupApplied ? (
               <Button
                 type="button"
@@ -526,7 +657,7 @@ export default function RegisterCafeForm({
               >
                 {t('quick_fill_discard')}
               </Button>
-            ) : (
+            ) : isMapsLink(formData.source_url.trim()) && (
               <Button
                 type="button"
                 onClick={handleGooglePlacesLookup}

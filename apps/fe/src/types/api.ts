@@ -86,7 +86,9 @@ export interface CafeRegistrationRequest {
     lat: number;
     lng: number;
   };
-  source_type?: 'google_url' | 'map_click' | 'manual' | 'postcode';
+  source_type?: 'google_place' | 'google_url' | 'map_click' | 'manual' | 'postcode';
+  /* Picked from autocomplete; the server re-fetches it before trusting it. */
+  google_place_id?: string;
   serves_coffee?: boolean;
   /* Written as approved observations: the registrant passed a 100m check. */
   traits?: Record<string, boolean>;
@@ -137,6 +139,12 @@ export interface GooglePlacesLookupData {
   /* Google's own id for the place. The photo fallback cannot ask for anything
      without it, and a seeded cafe has none until an admin pastes a Maps URL. */
   place_id?: string;
+}
+
+export interface GooglePlaceSuggestion {
+  place_id: string;
+  name: string;
+  secondary: string;
 }
 
 export interface GooglePlacesLookupResult {

@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { TrendingCafeResponse, CafeSearchResponse, CafeRegistrationRequest, CafeRegistrationResponse, LocationSearchResult, CafeDetailResponse, GooglePlacesLookupResult, GoogleCafePhoto, TraitSummary, TraitSuggestion, CafeBeansResponse } from '@/types/api';
+import { TrendingCafeResponse, CafeSearchResponse, CafeRegistrationRequest, CafeRegistrationResponse, LocationSearchResult, CafeDetailResponse, GooglePlacesLookupResult, GooglePlaceSuggestion, GoogleCafePhoto, TraitSummary, TraitSuggestion, CafeBeansResponse } from '@/types/api';
 import { API_BASE_URL, getAuthHeaders, handleResponse, apiFetch, ApiError } from './client';
 
 export async function registerCafe(
@@ -76,25 +76,7 @@ export async function lookupGoogleMapsUrl(
       headers,
       body: JSON.stringify({ url }),
     });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new ApiError('Authentication required', 401, 'NOT_AUTHENTICATED');
-      }
-      if (response.status === 501) {
-        return { success: false, error: 'NOT_CONFIGURED' };
-      }
-      if (response.status === 400) {
-        return { success: false, error: 'INVALID_URL' };
-      }
-      if (response.status === 404) {
-        return { success: false, error: 'PLACE_NOT_FOUND' };
-      }
-      return { success: false, error: 'LOOKUP_FAILED' };
-    }
-
-    const data = await response.json();
-    return { success: true, data };
+    return await toLookupResult(response);
   } catch (error) {
     console.error('Error looking up Google Maps URL:', error);
     if (error instanceof ApiError && error.isAuthError) {
@@ -106,6 +88,80 @@ export async function lookupGoogleMapsUrl(
       message: 'Failed to look up place information. Please try again.',
     };
   }
+}
+
+/* Ends the autocomplete session: Google bills the session as this one call. */
+export async function getGooglePlaceDetails(
+  placeId: string,
+  sessionToken: string
+): Promise<GooglePlacesLookupResult> {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await apiFetch(`${API_BASE_URL}/api/v1/cafes/google-places/details`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ place_id: placeId, session_token: sessionToken }),
+    });
+    return await toLookupResult(response);
+  } catch (error) {
+    console.error('Error fetching Google place details:', error);
+    if (error instanceof ApiError && error.isAuthError) {
+      throw error;
+    }
+    return { success: false, error: 'NETWORK_ERROR' };
+  }
+}
+
+/* Throws only for auth; any other failure is an empty list, so typing stays quiet. */
+export async function autocompleteGooglePlaces(
+  input: string,
+  sessionToken: string,
+  near?: { lat: number; lng: number }
+): Promise<GooglePlaceSuggestion[]> {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await apiFetch(`${API_BASE_URL}/api/v1/cafes/google-places/autocomplete`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        input,
+        session_token: sessionToken,
+        latitude: near?.lat,
+        longitude: near?.lng,
+      }),
+    });
+    if (response.status === 401) {
+      throw new ApiError('Authentication required', 401, 'NOT_AUTHENTICATED');
+    }
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    if (error instanceof ApiError && error.isAuthError) {
+      throw error;
+    }
+    console.error('Error autocompleting Google places:', error);
+    return [];
+  }
+}
+
+async function toLookupResult(response: Response): Promise<GooglePlacesLookupResult> {
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new ApiError('Authentication required', 401, 'NOT_AUTHENTICATED');
+    }
+    if (response.status === 501) {
+      return { success: false, error: 'NOT_CONFIGURED' };
+    }
+    if (response.status === 400) {
+      return { success: false, error: 'INVALID_URL' };
+    }
+    if (response.status === 404) {
+      return { success: false, error: 'PLACE_NOT_FOUND' };
+    }
+    return { success: false, error: 'LOOKUP_FAILED' };
+  }
+
+  const data = await response.json();
+  return { success: true, data };
 }
 
 export async function searchLocationByPostcode(

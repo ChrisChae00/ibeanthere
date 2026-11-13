@@ -3,6 +3,10 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from decimal import Decimal
 
+# Google place ids are URL-safe tokens; the pattern keeps a client-supplied id from
+# reaching the Places request path as anything else.
+GOOGLE_PLACE_ID_PATTERN = r"^[A-Za-z0-9_-]{10,300}$"
+
 # UGC Verification System Models
 
 
@@ -95,8 +99,10 @@ class CafeRegistrationRequest(BaseModel):
     traits: Optional[Dict[str, bool]] = None
     
     # Source tracking
-    source_type: Optional[str] = None  # 'google_url' | 'map_click' | 'manual'
+    source_type: Optional[str] = None  # 'google_place' | 'google_url' | 'map_click' | 'manual'
     source_url: Optional[str] = None
+    # Picked from autocomplete. Re-fetched and drift-checked server-side, never stored as sent.
+    google_place_id: Optional[str] = Field(None, pattern=GOOGLE_PLACE_ID_PATTERN)
     
     # Images
     images: List[str] = Field(..., min_length=1, max_length=5, description="1 to 5 photo URLs")
@@ -185,6 +191,23 @@ class CafeSearchResponse(BaseModel):
 class GooglePlacesLookupRequest(BaseModel):
     """Request model for Google Maps URL lookup."""
     url: str = Field(..., description="Google Maps URL to extract cafe info from")
+
+class GooglePlacesAutocompleteRequest(BaseModel):
+    """Request model for cafe name autocomplete."""
+    input: str = Field(..., min_length=2, max_length=100)
+    session_token: str = Field(..., min_length=8, max_length=64)
+    latitude: Optional[float] = Field(None, ge=-90, le=90)
+    longitude: Optional[float] = Field(None, ge=-180, le=180)
+
+class GooglePlacesSuggestion(BaseModel):
+    place_id: str
+    name: str
+    secondary: str = ""
+
+class GooglePlacesDetailsRequest(BaseModel):
+    """Request model for the Details call that ends an autocomplete session."""
+    place_id: str = Field(..., pattern=GOOGLE_PLACE_ID_PATTERN)
+    session_token: Optional[str] = Field(None, min_length=8, max_length=64)
 
 class GooglePlacesLookupResponse(BaseModel):
     """Response model for Google Maps URL lookup."""

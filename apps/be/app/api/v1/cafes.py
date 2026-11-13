@@ -21,6 +21,9 @@ from app.models.cafe import (
     CafeRegistrationRequest,
     GooglePlacesLookupRequest,
     GooglePlacesLookupResponse,
+    GooglePlacesAutocompleteRequest,
+    GooglePlacesSuggestion,
+    GooglePlacesDetailsRequest,
     TraitSummary,
     TraitObservationCreate,
     CafeBeanEntry,
@@ -1603,7 +1606,7 @@ async def register_cafe(
             # which would then block B's own registration on the UNIQUE index.
             google_place_id = None
             source_url = None
-            if request.source_type == 'google_url' and request.source_url:
+            if request.google_place_id or (request.source_type == 'google_url' and request.source_url):
                 from app.config import settings
                 if not settings.google_places_api_key:
                     logger.error(
@@ -1613,18 +1616,29 @@ async def register_cafe(
                     )
                 else:
                     lookup = None
+                    google_ref = request.google_place_id or request.source_url
                     try:
                         from app.services.google_places_service import GooglePlacesService
-                        lookup = await GooglePlacesService(
-                            api_key=settings.google_places_api_key
-                        ).lookup_from_url(request.source_url)
+                        service = GooglePlacesService(api_key=settings.google_places_api_key)
+                        if request.google_place_id:
+                            # Only the id and the location are needed to verify, which
+                            # keeps this re-check on Google's cheapest Details tier.
+                            lookup = await service._get_place_details(
+                                request.google_place_id, field_mask="id,location"
+                            )
+                            if lookup:
+                                lookup["google_maps_url"] = (
+                                    "https://www.google.com/maps/place/?q=place_id:"
+                                    + request.google_place_id
+                                )
+                        else:
+                            lookup = await service.lookup_from_url(request.source_url)
                     except Exception:
-                        logger.exception("Google Places lookup raised for %s",
-                                         request.source_url)
+                        logger.exception("Google Places lookup raised for %s", google_ref)
                     if not lookup:
                         logger.error("Google Places lookup found nothing for %s — "
                                      "registering without a place id",
-                                     request.source_url)
+                                     google_ref)
                     else:
                         drift = None
                         if lookup.get("latitude") is not None and lookup.get("longitude") is not None:
@@ -1771,8 +1785,10 @@ async def register_cafe(
 # =========================================================
 
 @router.post("/google-places/lookup")
+@limiter.limit("12/minute")
 async def lookup_google_maps_url(
-    request: GooglePlacesLookupRequest = Body(...),
+    request: Request,
+    payload: GooglePlacesLookupRequest = Body(...),
     current_user = Depends(get_current_user),
 ):
     """
@@ -1795,7 +1811,7 @@ async def lookup_google_maps_url(
         )
     
     # Validate URL format
-    url = request.url.strip()
+    url = payload.url.strip()
     if not url:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1834,6 +1850,55 @@ async def lookup_google_maps_url(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to look up place information. Please try again or enter manually."
         )
+
+
+def _google_places_service() -> GooglePlacesService:
+    if not settings.google_places_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Google Places API is not configured. Please enter cafe information manually."
+        )
+    return GooglePlacesService(api_key=settings.google_places_api_key)
+
+
+# Called while the user types (debounced client-side), so the limit is per keystroke
+# burst, not per registration.
+@router.post("/google-places/autocomplete", response_model=List[GooglePlacesSuggestion])
+@limiter.limit("60/minute")
+async def autocomplete_google_places(
+    request: Request,
+    payload: GooglePlacesAutocompleteRequest = Body(...),
+    current_user = Depends(get_current_user),
+):
+    """Suggest Google cafes for a partial name, biased toward the given point."""
+    suggestions = await _google_places_service().autocomplete(
+        payload.input.strip(), payload.session_token, payload.latitude, payload.longitude
+    )
+    if suggestions is None:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Place search is unavailable. Please try again or enter manually."
+        )
+    return suggestions
+
+
+@router.post("/google-places/details", response_model=GooglePlacesLookupResponse)
+@limiter.limit("12/minute")
+async def google_place_details(
+    request: Request,
+    payload: GooglePlacesDetailsRequest = Body(...),
+    current_user = Depends(get_current_user),
+):
+    """Fill the form from a picked suggestion. Ends the autocomplete session."""
+    result = await _google_places_service()._get_place_details(
+        payload.place_id, session_token=payload.session_token
+    )
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Could not find place information"
+        )
+    return GooglePlacesLookupResponse(**result)
 
 @router.get("/osm/search")
 async def search_osm_location(

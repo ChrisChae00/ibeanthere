@@ -12,7 +12,7 @@ Uses field masks to minimize API cost.
 import httpx
 import re
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from urllib.parse import urlparse, unquote, parse_qs, urlencode, urlunparse
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,9 @@ class GooglePlacesService:
         "googleMapsUri",
     ])
     
+    # The registrant is standing in the cafe, so the nearest few are enough.
+    AUTOCOMPLETE_LIMIT = 5
+
     def __init__(self, api_key: str):
         self.api_key = api_key
 
@@ -371,17 +374,85 @@ class GooglePlacesService:
             logger.error(f"Places text search error: {e}")
             return None
     
-    async def _get_place_details(self, place_id: str) -> Optional[Dict[str, Any]]:
+    async def autocomplete(
+        self,
+        query: str,
+        session_token: str,
+        lat: Optional[float] = None,
+        lng: Optional[float] = None,
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        Suggest cafes for a partial name. None means Google failed, [] means no match.
+
+        The session token ties these keystrokes to the Place Details call that ends
+        them; Google bills that session as one Details call instead of per request.
+        """
+        body: Dict[str, Any] = {
+            "input": query,
+            "sessionToken": session_token,
+            "includedPrimaryTypes": ["cafe", "coffee_shop"],
+        }
+        if lat is not None and lng is not None:
+            body["locationBias"] = {
+                "circle": {
+                    "center": {"latitude": lat, "longitude": lng},
+                    "radius": 5000.0,
+                }
+            }
+            # origin makes Google return distanceMeters, which the list is sorted by.
+            body["origin"] = {"latitude": lat, "longitude": lng}
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    f"{self.PLACES_API_BASE}:autocomplete",
+                    headers={
+                        "Content-Type": "application/json",
+                        "X-Goog-Api-Key": self.api_key,
+                    },
+                    json=body,
+                )
+            if response.status_code != 200:
+                logger.warning(f"Places autocomplete failed: {response.status_code} - {response.text}")
+                return None
+            suggestions = []
+            for item in response.json().get("suggestions", []):
+                prediction = item.get("placePrediction")
+                if not prediction or not prediction.get("placeId"):
+                    continue
+                fmt = prediction.get("structuredFormat", {})
+                suggestions.append({
+                    "distance": prediction.get("distanceMeters"),
+                    "place_id": prediction["placeId"],
+                    "name": fmt.get("mainText", {}).get("text")
+                        or prediction.get("text", {}).get("text", ""),
+                    "secondary": fmt.get("secondaryText", {}).get("text", ""),
+                })
+            # Nearest first; without an origin Google's relevance order stands.
+            suggestions.sort(key=lambda s: s["distance"] if s["distance"] is not None else float("inf"))
+            for suggestion in suggestions:
+                del suggestion["distance"]
+            return suggestions[:self.AUTOCOMPLETE_LIMIT]
+        except Exception as e:
+            logger.error(f"Places autocomplete error: {e}")
+            return None
+
+    async def _get_place_details(
+        self,
+        place_id: str,
+        session_token: Optional[str] = None,
+        field_mask: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
         """Get place details from Google Places API and return standardized format."""
         try:
             logger.info(f"Getting place details for place_id: {place_id}")
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
                     f"{self.PLACES_API_BASE}/{place_id}",
+                    params={"sessionToken": session_token} if session_token else None,
                     headers={
                         "Content-Type": "application/json",
                         "X-Goog-Api-Key": self.api_key,
-                        "X-Goog-FieldMask": self.FIELD_MASK,
+                        "X-Goog-FieldMask": field_mask or self.FIELD_MASK,
                     },
                 )
                 
