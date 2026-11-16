@@ -281,7 +281,8 @@ export default function NearbyPage(
                     <div className="shrink-0 sm:pl-2">
                       {user ? (
                         <div className="flex flex-col items-start gap-2 sm:items-end">
-                          <div className="flex items-center gap-2">
+                          {/* Wraps rather than squeezes: a squeezed log button broke onto two lines on phones. */}
+                          <div className="flex flex-wrap items-center gap-2">
                             <DropBeanButton
                               cafeId={cafe.id}
                               cafeLat={parseFloat(String(cafe.latitude))}
@@ -291,7 +292,7 @@ export default function NearbyPage(
                             />
                             <Link
                               href={`/${locale}/cafes/${cafe.slug || cafe.id}/log`}
-                              className="control-flat flex h-(--btn-height-sm) items-center justify-center rounded-(--btn-radius) px-4 text-sm font-medium"
+                              className="control-flat flex h-(--btn-height-sm) shrink-0 items-center justify-center whitespace-nowrap rounded-(--btn-radius) px-4 text-sm font-medium"
                             >
                               {t('write_log')}
                             </Link>
