@@ -44,6 +44,9 @@ const HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com';
                         `cta` says which prompt (`cafe` or `beans`), `page` whether it
                         was the guide itself or a drink page. Which drink is left out,
                         for the same reason its slug is masked in the path.
+  - signed_up:          an account was created. `method` is `email` or `google`. Sent
+                        from the browser, so an ad blocker hides it: the true total
+                        lives in Supabase auth, this one is for trends and sources.
 
   The three cafe events carry `cafe_id`, and it is the uuid, never the slug: the same
   cafe is reachable under both, and two names for one place is how "opened it, then took
@@ -53,7 +56,8 @@ export type AnalyticsEvent =
   | 'cafe_detail_opened'
   | 'cafe_action_taken'
   | 'coffee_log_saved'
-  | 'learn_cta_clicked';
+  | 'learn_cta_clicked'
+  | 'signed_up';
 
 let client: PostHog | null = null;
 

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useErrorTranslator } from '@/hooks/useErrorTranslator';
 import { createClient } from '@/shared/lib/supabase/client';
+import { capture } from '@/lib/analytics';
 import {
   ErrorAlert,
   Button,
@@ -182,6 +183,10 @@ export function CompleteProfileForm({ locale, returnUrl = '/' }: CompleteProfile
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Failed to update profile');
       }
+
+      // Mostly Google accounts land here, but an older email account missing its
+      // terms consent does too, so the method comes from the account itself.
+      capture('signed_up', { method: session.user.app_metadata.provider });
 
       // CRITICAL STEP: Update Supabase Auth Metadata locally!
       // The backend updates the database, but Supabase Auth Session (JWT) needs to be refreshed

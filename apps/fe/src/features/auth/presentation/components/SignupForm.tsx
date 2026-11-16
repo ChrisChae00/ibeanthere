@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { createClient } from '@/shared/lib/supabase/client';
 import { useOAuthSignIn } from '@/hooks/useOAuthSignIn';
+import { capture } from '@/lib/analytics';
 import { useErrorTranslator } from '@/hooks/useErrorTranslator';
 import {
   EyeIcon,
@@ -200,6 +201,12 @@ export function SignupForm({ locale }: SignupFormProps) {
         setError(translateError(authError.message));
         setIsLoading(false);
         return;
+      }
+
+      // Supabase answers a repeat signup for an existing email with a user that has no
+      // identities instead of an error, so that one is not a new account.
+      if (authData.user?.identities?.length) {
+        capture('signed_up', { method: 'email' });
       }
 
       // After successful Supabase Auth signup, register user profile in backend
