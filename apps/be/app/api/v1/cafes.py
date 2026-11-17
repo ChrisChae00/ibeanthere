@@ -301,6 +301,17 @@ from app.services.cafe_dedupe import calculate_earth_distance, check_nearby_cafe
 # being registered. Same 100 m the registrant themselves has to stand within.
 GOOGLE_PLACE_MAX_DRIFT_METERS = 100
 
+
+def admin_owned_photos(gallery: List[str], visits: List[dict], admin_visit_id: Optional[str]) -> List[str]:
+    """Gallery photos that no log other than the admin's own holds, in gallery order."""
+    elsewhere = {
+        url
+        for visit in visits
+        if visit.get("id") != admin_visit_id
+        for url in (visit.get("photo_urls") or [])
+    }
+    return [url for url in gallery if url not in elsewhere]
+
 _STATUS_PRIORITY = {"verified": 0, "pending": 1, "disputed": 2}
 
 def _is_better_cafe(candidate: dict, existing: dict) -> bool:
@@ -2693,16 +2704,27 @@ async def admin_update_cafe(
                 "cafe_id", cafe_id
             ).eq("user_id", admin_user_id).eq("comment", admin_comment).execute()
 
-            if request.images:
+            # request.images is the whole gallery. Only the photos no other log holds are
+            # the admin's own; copying the rest would keep a user's photo alive after they
+            # delete their log.
+            admin_visit_id = existing_visit.data[0]["id"] if existing_visit.data else None
+            current_visits = supabase.table("cafe_visits").select("id, photo_urls").eq(
+                "cafe_id", cafe_id
+            ).not_.is_("photo_urls", "null").execute()
+            admin_photos = admin_owned_photos(request.images, current_visits.data or [], admin_visit_id)
+
+            if admin_photos:
                 if existing_visit.data:
-                    supabase.table("cafe_visits").update(
-                        {"photo_urls": request.images, "visited_at": datetime.now(timezone.utc).isoformat()}
-                    ).eq("id", existing_visit.data[0]["id"]).execute()
+                    supabase.table("cafe_visits").update({
+                        "photo_urls": admin_photos,
+                        "has_photos": True,
+                        "visited_at": datetime.now(timezone.utc).isoformat(),
+                    }).eq("id", admin_visit_id).execute()
                 else:
                     visit_data = {
                         "cafe_id": cafe_id,
                         "user_id": admin_user_id,
-                        "photo_urls": request.images,
+                        "photo_urls": admin_photos,
                         "is_public": True,
                         "anonymous": False,
                         "comment": admin_comment,
@@ -2711,10 +2733,10 @@ async def admin_update_cafe(
                     }
                     supabase.table("cafe_visits").insert(visit_data).execute()
             elif existing_visit.data:
-                # images is explicitly empty list - remove admin visit photos
+                # Nothing left that only the admin holds - empty the admin visit
                 supabase.table("cafe_visits").update(
-                    {"photo_urls": []}
-                ).eq("id", existing_visit.data[0]["id"]).execute()
+                    {"photo_urls": [], "has_photos": False}
+                ).eq("id", admin_visit_id).execute()
 
         # Re-fetch the updated cafe
         updated_cafe = supabase.table("cafes").select("*").eq("id", cafe_id).single().execute()
