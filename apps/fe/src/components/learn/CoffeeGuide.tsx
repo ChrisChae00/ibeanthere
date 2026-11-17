@@ -5,6 +5,7 @@ import type { Locale } from '@/data/coffee/types';
 import { getAllCategories, getAllDrinks, getDrinkBySlug, getDrinksByCategory, getLastReviewed } from '@/data/coffee';
 import { datedEvents, milkRows, milkSources } from '@/data/coffee/guide';
 import MapPrompt from './MapPrompt';
+import BrewingMethods from './BrewingMethods';
 import { DrinkList, SourceNote, TEXT_LINK, formatDay } from './GuideParts';
 
 const H2 = 'font-display text-3xl leading-tight text-ink-primary sm:text-4xl';
@@ -43,20 +44,25 @@ export default async function CoffeeGuide({ locale }: { locale: string }) {
 
       {categories.map(category => {
         const copy = category.content[loc];
+        const isBrewing = category.id === 'brewing';
         return (
           <section
             key={category.id}
             id={category.id}
             aria-labelledby={`${category.id}-heading`}
-            className="scroll-mt-[calc(var(--nav-h)+2rem)] border-t border-edge-rule pt-10 pb-14 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] lg:gap-x-16"
+            className={`scroll-mt-[calc(var(--nav-h)+2rem)] border-t border-edge-rule pt-10 pb-14 ${isBrewing ? '' : 'lg:grid lg:grid-cols-2 lg:gap-x-16'}`}
           >
-            <div className="mb-6 lg:mb-0">
+            <div className={isBrewing ? 'mb-6' : 'mb-6 lg:mb-0'}>
               <h2 id={`${category.id}-heading`} className={H2}>
                 {copy.name}
               </h2>
               <p className="mt-3 max-w-[40ch] leading-relaxed text-ink-secondary">{copy.definition}</p>
             </div>
-            <DrinkList drinks={getDrinksByCategory(category.id)} locale={locale} />
+            {isBrewing ? (
+              <BrewingMethods drinks={getDrinksByCategory(category.id)} locale={locale} />
+            ) : (
+              <DrinkList drinks={getDrinksByCategory(category.id)} locale={locale} />
+            )}
           </section>
         );
       })}

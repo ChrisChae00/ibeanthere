@@ -1,0 +1,158 @@
+.frenchPress {
+  display: inline-block;
+  width: min(100%, 320px);
+  aspect-ratio: 9 / 10;
+}
+
+.frenchPress svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.shadow {
+  fill: #d3c8b6;
+  opacity: 0.45;
+}
+
+.handle {
+  fill: none;
+  stroke: #343c31;
+  stroke-width: 14;
+}
+
+.glass {
+  fill: #e4eee8;
+  fill-opacity: 0.25;
+  stroke: #87907e;
+  stroke-width: 2;
+}
+
+.coffee {
+  fill: #97633b;
+  fill-opacity: 0.88;
+}
+
+.surface {
+  fill: none;
+  stroke: #d6b17e;
+  stroke-width: 3;
+}
+
+.grounds,
+.particles {
+  fill: #4b3225;
+}
+
+.particles {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: fpSettle 7s infinite;
+}
+
+.filter,
+.knob,
+.lid,
+.base {
+  fill: #343c31;
+}
+
+.filter path {
+  stroke: #b8b6a8;
+  stroke-width: 2;
+  stroke-dasharray: 2 2;
+}
+
+.rim {
+  fill: #515a48;
+}
+
+.rod {
+  fill: none;
+  stroke: #707866;
+  stroke-width: 5;
+}
+
+.highlight {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4;
+  opacity: 0.5;
+  stroke-linecap: round;
+}
+
+.frame {
+  fill: none;
+  stroke: #70785f;
+  stroke-width: 4;
+  opacity: 0.8;
+}
+
+.plunger,
+.filter {
+  animation: fpPress 7s infinite;
+}
+
+@keyframes fpPress {
+  0%,
+  12% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  70%,
+  88% {
+    transform: translateY(174px);
+    opacity: 1;
+  }
+  94% {
+    transform: translateY(174px);
+    opacity: 0;
+  }
+  95% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fpSettle {
+  0%,
+  12% {
+    transform: scaleY(1);
+    opacity: 0.65;
+  }
+  70%,
+  88% {
+    transform: scaleY(0.04);
+    opacity: 0.8;
+  }
+  94% {
+    transform: scaleY(0.04);
+    opacity: 0;
+  }
+  95% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0.65;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plunger,
+  .filter {
+    animation: none;
+    transform: translateY(174px);
+  }
+
+  .particles {
+    animation: none;
+    transform: scaleY(0.04);
+  }
+}

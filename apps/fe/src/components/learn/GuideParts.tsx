@@ -50,10 +50,7 @@ export function SourceNote({
   );
 }
 
-/*
-  One row per drink: its name and its one-line answer, divided by rules rather than
-  boxed in cards. The whole row is the link, so the target is the full width.
-*/
+/** One row per drink; the whole row links to its explanation. */
 export function DrinkList({ drinks, locale }: { drinks: CoffeeDrink[]; locale: string }) {
   const loc = locale as Locale;
   return (

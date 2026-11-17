@@ -15,12 +15,12 @@ export const categories: CoffeeCategory[] = [
       en: {
         name: 'Brewing methods',
         definition:
-          'Ways of getting coffee out of the grounds. The same beans come out heavier or cleaner depending on which one you use.',
+          'Ways of getting coffee out of the grounds. The same beans come out heavier or cleaner depending on which one you use. Click on the list of brewing methods below to see the animation.',
       },
       ko: {
         name: '추출법',
         definition:
-          '원두에서 커피를 뽑아내는 방식입니다. 같은 원두도 어떤 방식으로 내리느냐에 따라 무겁게도, 깔끔하게도 나옵니다.',
+          '원두에서 커피를 뽑아내는 방식입니다. 같은 원두도 어떤 방식으로 내리느냐에 따라 무겁게도, 깔끔하게도 나옵니다. 아래 추출법을 누르면 애니메이션을 볼 수 있습니다.',
       },
     },
     drinkSlugs: [

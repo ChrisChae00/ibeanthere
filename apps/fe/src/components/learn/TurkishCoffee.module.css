@@ -1,0 +1,281 @@
+.turkishCoffee {
+  display: inline-block;
+  width: min(100%, 320px);
+  aspect-ratio: 9 / 11;
+}
+
+.turkishCoffee svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.shadow {
+  fill: #d3c8b6;
+  opacity: 0.45;
+}
+
+.handle {
+  fill: none;
+  stroke: #343c31;
+  stroke-width: 15;
+  stroke-linecap: round;
+}
+
+.handleHighlight {
+  fill: none;
+  stroke: #68715d;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.bracket {
+  fill: none;
+  stroke: #9d6948;
+  stroke-width: 12;
+}
+
+.body {
+  fill: #bd8a61;
+  stroke: #916346;
+  stroke-width: 2;
+}
+
+.facet {
+  fill: none;
+  stroke: #a97450;
+  stroke-width: 2;
+  opacity: 0.65;
+}
+
+.bodyHighlight {
+  fill: none;
+  stroke: #ebc6a0;
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.65;
+}
+
+.base {
+  fill: none;
+  stroke: #80573e;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.mouth {
+  fill: #a5714e;
+  stroke: #916346;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.coffee {
+  fill: #573b29;
+}
+
+.foam {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: foamSimmer 8s ease-in-out infinite;
+}
+
+.foamCap {
+  fill: #c39a69;
+}
+
+.bubble {
+  fill: #785235;
+  stroke: #dfbc87;
+  stroke-width: 0.7;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bubblePulse 1.8s ease-in-out infinite;
+}
+
+.rim {
+  fill: none;
+  stroke: #dab18a;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.steam {
+  fill: none;
+  stroke: #b3a18a;
+  stroke-width: 2;
+  stroke-linecap: round;
+  animation: steamCycle 8s ease-in-out infinite;
+}
+
+.steamOne {
+  animation: steamDrift 2.6s ease-in-out infinite;
+}
+
+.steamTwo {
+  animation: steamDrift 2.6s ease-in-out -0.9s infinite;
+}
+
+.steamThree {
+  animation: steamDrift 2.6s ease-in-out -1.7s infinite;
+}
+
+.burner {
+  fill: none;
+  stroke: #515b47;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.heat {
+  fill: #d69a55;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: heatPulse 8s ease-in-out infinite;
+}
+
+.foamCell {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: foamCellRise 4.6s ease-in-out infinite;
+}
+
+.cellBody {
+  fill: #c39a69;
+  stroke: #b18a5a;
+  stroke-width: 0.6;
+}
+
+.cellShine {
+  fill: none;
+  stroke: #e6c494;
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+
+@keyframes foamSimmer {
+  0%,
+  12%,
+  100% {
+    transform: translateY(1px);
+    opacity: 0.65;
+  }
+  48%,
+  72% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+  86% {
+    transform: translateY(0);
+    opacity: 0.85;
+  }
+}
+
+@keyframes bubblePulse {
+  0%,
+  100% {
+    transform: scale(0.65);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.95;
+  }
+}
+
+@keyframes steamDrift {
+  0% {
+    transform: translateY(5px);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-13px);
+    opacity: 0;
+  }
+}
+
+@keyframes steamCycle {
+  0%,
+  10% {
+    opacity: 0.3;
+  }
+  55%,
+  75% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes heatPulse {
+  0%,
+  55% {
+    transform: scaleY(1);
+    opacity: 0.9;
+  }
+  68%,
+  86% {
+    transform: scaleY(0.5);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0.9;
+  }
+}
+
+@keyframes foamCellRise {
+  0%,
+  12% {
+    transform: translateY(1px) scale(0.35);
+    opacity: 0.2;
+  }
+  40% {
+    transform: translateY(-1px) scale(0.85);
+    opacity: 1;
+  }
+  68% {
+    transform: translateY(-3px) scale(1.1);
+    opacity: 1;
+  }
+  77% {
+    transform: translateY(-3px) scale(1.14);
+    opacity: 0.8;
+  }
+  84%,
+  100% {
+    transform: translateY(0) scale(0.25);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foam {
+    animation: none;
+    transform: translateY(0);
+  }
+
+  .bubble,
+  .steam,
+  .steamOne,
+  .steamTwo,
+  .steamThree,
+  .heat {
+    animation: none;
+  }
+
+  .steam {
+    opacity: 0.4;
+  }
+
+  .foamCell {
+    animation: none;
+    transform: scale(0.7);
+    opacity: 0.8;
+  }
+}

@@ -1,0 +1,221 @@
+.coldBrew {
+  display: inline-block;
+  width: min(100%, 320px);
+  aspect-ratio: 9 / 11;
+}
+
+.coldBrew svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.shadow {
+  fill: #d3c8b6;
+  opacity: 0.45;
+}
+
+.handle {
+  fill: none;
+  stroke: #7e9286;
+  stroke-width: 10;
+  stroke-linejoin: round;
+}
+
+.glass {
+  fill: #deebe5;
+  fill-opacity: 0.24;
+  stroke: #85988b;
+  stroke-width: 2;
+}
+
+.water {
+  fill: #c4d9d2;
+  fill-opacity: 0.7;
+  animation: steep 9.23s ease-in-out infinite;
+}
+
+.surface {
+  fill: none;
+  stroke: #d2e2d8;
+  stroke-width: 2.5;
+  opacity: 0.7;
+}
+
+.filter {
+  fill: #a8b4a1;
+  fill-opacity: 0.22;
+  stroke: #79896e;
+  stroke-width: 1.5;
+}
+
+.mesh {
+  fill: none;
+  stroke: #8a987e;
+  stroke-width: 0.65;
+  opacity: 0.5;
+}
+
+.grounds {
+  fill: #644630;
+  opacity: 0.86;
+}
+
+.grains {
+  fill: #ba8c5b;
+  opacity: 0.65;
+}
+
+.highlight {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4;
+  stroke-linecap: round;
+  opacity: 0.5;
+}
+
+.lid {
+  fill: #414d3c;
+}
+
+.lidTop {
+  fill: #65735a;
+}
+
+.base {
+  fill: none;
+  stroke: #85988b;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.snowflake {
+  fill: none;
+  stroke: #345f73;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: cold 8s ease-in-out infinite;
+}
+
+.snowflake2 {
+  animation-name: coldTwo;
+  animation-duration: 10s;
+}
+
+.snowflake3 {
+  animation-name: coldThree;
+  animation-duration: 9s;
+}
+
+.condensation {
+  fill: #bfd8d7;
+  stroke: #94b4b5;
+  stroke-width: 0.7;
+  animation: dew 6s ease-in-out infinite;
+}
+
+@keyframes steep {
+  0%,
+  10%,
+  100% {
+    fill: #c4d9d2;
+    fill-opacity: 0.7;
+  }
+  40% {
+    fill: #b4a77c;
+    fill-opacity: 0.78;
+  }
+  78%,
+  88% {
+    fill: #8d603d;
+    fill-opacity: 0.9;
+  }
+}
+
+@keyframes cold {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: translate(-3px, 1px) rotate(-10deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(5px, 13px) rotate(12deg);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(7px, 29px) rotate(28deg);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(-5px, 18px) rotate(5deg);
+  }
+}
+
+@keyframes coldTwo {
+  0%,
+  100% {
+    opacity: 0.9;
+    transform: translate(0, -8px) rotate(8deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-5px, 5px) rotate(-15deg);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translate(4px, 23px) rotate(-30deg);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(7px, 7px) rotate(-5deg);
+  }
+}
+
+@keyframes coldThree {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate(0, 5px) rotate(-8deg);
+  }
+  25% {
+    opacity: 0.85;
+    transform: translate(11px, -8px) rotate(10deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(18px, -24px) rotate(30deg);
+  }
+  75% {
+    opacity: 0.9;
+    transform: translate(5px, -10px) rotate(5deg);
+  }
+}
+
+@keyframes dew {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .water {
+    animation: none;
+    fill: #8d603d;
+    fill-opacity: 0.9;
+  }
+
+  .snowflake,
+  .condensation {
+    animation: none;
+  }
+
+  .snowflake {
+    opacity: 0.9;
+  }
+}
