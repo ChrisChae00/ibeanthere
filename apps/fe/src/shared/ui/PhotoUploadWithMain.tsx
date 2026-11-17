@@ -142,10 +142,10 @@ export default function PhotoUploadWithMain({
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-text">
-        {t('photos_label')} ({photos.length}/{maxPhotos})
+        {t('photos_label')} ({Number.isFinite(maxPhotos) ? `${photos.length}/${maxPhotos}` : photos.length})
       </label>
       <p className="text-xs text-ink-secondary mb-2">
-        {t('photos_hint')}
+        {Number.isFinite(maxPhotos) ? t('photos_hint') : t('photos_hint_unlimited')}
       </p>
 
       {photos.length > 0 && (

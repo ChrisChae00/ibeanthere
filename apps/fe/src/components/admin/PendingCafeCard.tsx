@@ -407,6 +407,8 @@ export default function PendingCafeCard({
                   mainIndex={editMainIndex}
                   onMainIndexChange={setEditMainIndex}
                   userId={user.id}
+                  /* The list is the whole gallery, everyone's photos, so a cap here would stop admins adding any. */
+                  maxPhotos={Infinity}
                 />
               )}
             </div>
